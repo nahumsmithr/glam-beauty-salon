@@ -2811,9 +2811,50 @@
         }
     };
 
-</script>
+        /* ==========================================================================
+           14. ARRANQUE INICIAL DEL SISTEMA
+           ========================================================================== */
+        window.onload = () => { 
+            updateNavMenu();
+            if (STATE.currentUser) {
+                document.getElementById('nav-user-name').innerText = STATE.currentUser.name.split(' ')[0].toUpperCase();
+                if (STATE.currentUser.role === 'admin') { 
+                    showAdminDashboard(); 
+                } else { 
+                    showLandingPage(); 
+                }
+            } else {
+                showLandingPage();
+            }
+        };
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+      // Agregamos la herramienta Firestore que es tu Base de Datos real
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q",
+        authDomain: "glam-beauty-salon.firebaseapp.com",
+        projectId: "glam-beauty-salon",
+        storageBucket: "glam-beauty-salon.firebasestorage.app",
+        messagingSenderId: "255268574975",
+        appId: "1:255268574975:web:7d8ffcbc92ee43703bdeca",
+        measurementId: "G-301VXYQYT0"
+      };
+
+      // Inicializar Firebase
+      const app = initializeApp(firebaseConfig);
+      // Encender la conexión a la base de datos
+      const db = getFirestore(app);
+      
+      console.log("¡Firebase conectado exitosamente a tu app!");
+    </script>
 
 </body>
-    </html>
+</html>
+
