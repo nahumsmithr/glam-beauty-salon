@@ -2678,7 +2678,10 @@
         } catch(e){}
     }
 
-    function finalizeTransaction() {
+    /* ==========================================================================
+       CHECKOUT Y VENTAS: FIREBASE + FORMSPREE
+       ========================================================================== */
+    window.finalizeTransaction = async function() {
         const mode = document.getElementById('pay-mode') ? document.getElementById('pay-mode').value : 'Efectivo';
         const clientName = (document.getElementById('f-name') && document.getElementById('f-name').value.trim() !== '') ? document.getElementById('f-name').value.trim() : "CONSUMIDOR FINAL";
         
@@ -2710,7 +2713,6 @@
         const tip = tipInput ? (parseFloat(tipInput.value) || 0) : 0;
         
         const totalNum = (sub * 1.18) + del + tip; 
-        
         const ncf = tipoFactura + Math.floor(Math.random()*90000000 + 10000000);
         
         const saleRecord = { 
@@ -2727,76 +2729,104 @@
             logistics: del, 
             tip: tip 
         };
-        
-        STATE.sales.push(saleRecord); 
-        STATE.caja += totalNum; 
-        
-        STATE.cart.forEach(cItem => { 
-            const dbItem = STATE.inventory.find(inv => inv.id === cItem.id); 
-            if(dbItem && dbItem.stock > 0) { 
-                dbItem.stock--; 
-            } 
+
+        Swal.fire({
+            title: 'Procesando pago y actualizando sistema...',
+            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>',
+            allowOutsideClick: false,
+            showConfirmButton: false
         });
 
-        // -------------------------------------------------------------
-        // ENVÍO DE CORREO DE COMPRA VÍA FORMSPREE
-        // -------------------------------------------------------------
-        if (STATE.currentUser && STATE.currentUser.email) {
-            const listadoArticulos = STATE.cart.map(item => item.name).join(', ');
-
-            fetch("https://formspree.io/f/xkopberl", {
-                method: "POST",
-                headers: {
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    Asunto: "NUEVA COMPRA - GLAM BOUTIQUE",
-                    Cliente_Correo: STATE.currentUser.email,
-                    Cliente_Nombre: clientName,
-                    Factura: ncf,
-                    Total_Pagado: "RD$ " + totalNum.toFixed(2),
-                    Articulos_Comprados: listadoArticulos,
-                    Metodo_Pago: mode
-                })
-            }).catch(err => console.log("Error enviando factura: ", err));
-        }
-        
-        STATE.cart = []; 
-        save(); 
-        
-        const modalEl = document.getElementById('payModal'); 
-        if (typeof bootstrap !== 'undefined') { 
-            const m = bootstrap.Modal.getInstance(modalEl); 
-            if(m) m.hide(); 
-        }
-        
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove()); 
-        document.body.classList.remove('modal-open'); 
-        document.body.style = '';
-        
-        Swal.fire({ 
-            title: 'Aprobando pago...', 
-            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>', 
-            allowOutsideClick: false, 
-            showConfirmButton: false 
-        });
-        
-        setTimeout(() => { 
-            try { 
-                generateProfessionalPDF(saleRecord); 
-            } catch(err) {} 
-            
-            Swal.fire('¡PAGO EXITOSO!', `Comprobante: ${ncf}`, 'success').then(() => { 
-                updateCart(); 
-                filterShop('all'); 
-                if (STATE.currentUser && STATE.currentUser.role === 'admin') { 
-                    renderAdmin(); 
+        try {
+            // 1. REGISTRO EN LA NUBE (NUEVA VENTA)
+            const paqueteVenta = {
+                fields: {
+                    ncf: { stringValue: saleRecord.ncf },
+                    cliente: { stringValue: saleRecord.client },
+                    total: { stringValue: saleRecord.total },
+                    metodo: { stringValue: saleRecord.method },
+                    fecha: { stringValue: saleRecord.date },
+                    hora: { stringValue: saleRecord.time }
                 }
-            }); 
-        }, 1500);
-    }
+            };
+            const urlVenta = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/venta?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+            await fetch(urlVenta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(paqueteVenta) });
 
+            // 2. ACTUALIZACIÓN DE INVENTARIO (DESCUENTO EN LA NUBE Y LOCAL)
+            for (let i = 0; i < STATE.cart.length; i++) {
+                const cItem = STATE.cart[i];
+                const dbItem = STATE.inventory.find(inv => inv.id === cItem.id);
+                
+                if(dbItem && dbItem.stock > 0) {
+                    const nuevoStock = dbItem.stock - 1;
+                    dbItem.stock = nuevoStock; // Se actualiza visualmente
+                    
+                    if(dbItem.firebaseId) {
+                        const urlStock = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${dbItem.firebaseId}?updateMask.fieldPaths=cantidad&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+                        await fetch(urlStock, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ fields: { cantidad: { stringValue: nuevoStock.toString() } } })
+                        });
+                    }
+                }
+            }
+
+            // 3. TU SISTEMA DE ENVÍO DE CORREOS (FORMSPREE INTACTO)
+            if (STATE.currentUser && STATE.currentUser.email) {
+                const listadoArticulos = STATE.cart.map(item => item.name).join(', ');
+
+                fetch("https://formspree.io/f/xkopberl", {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        Asunto: "NUEVA COMPRA - GLAM BOUTIQUE",
+                        Cliente_Correo: STATE.currentUser.email,
+                        Cliente_Nombre: clientName,
+                        Factura: ncf,
+                        Total_Pagado: "RD$ " + totalNum.toFixed(2),
+                        Articulos_Comprados: listadoArticulos,
+                        Metodo_Pago: mode
+                    })
+                }).catch(err => console.log("Error enviando factura: ", err));
+            }
+
+            // 4. LIMPIEZA FINAL Y PDF
+            STATE.sales.push(saleRecord); 
+            STATE.caja += totalNum; 
+            STATE.cart = []; 
+            save(); 
+            
+            const modalEl = document.getElementById('payModal'); 
+            if (typeof bootstrap !== 'undefined') { 
+                const m = bootstrap.Modal.getInstance(modalEl); 
+                if(m) m.hide(); 
+            }
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove()); 
+            document.body.classList.remove('modal-open'); 
+            document.body.style = '';
+
+            setTimeout(() => { 
+                try { generateProfessionalPDF(saleRecord); } catch(err) {} 
+                
+                Swal.fire('¡PAGO EXITOSO!', `Comprobante: ${ncf}`, 'success').then(() => { 
+                    updateCart(); 
+                    filterShop('all'); 
+                    if (STATE.currentUser && STATE.currentUser.role === 'admin') { 
+                        window.renderAdmin(); 
+                        if (typeof filterInventory === "function") filterInventory(); // Refresca inventario del admin
+                    }
+                }); 
+            }, 1000);
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'Problema conectando al servidor. ' + error.message, 'error');
+        }
+    };
     function generateProfessionalPDF(s) {
         const { jsPDF } = window.jspdf; 
         const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
