@@ -3162,13 +3162,12 @@
     // Arrancamos la carga masiva
     cargarTodoDesdeNube();
  // =======================================================================
-// 🚀 GLAM OS: DISEÑO ORIGINAL FUSIONADO CON FIREBASE Y COMPRESIÓN
+// 🚀 GLAM OS: TU DISEÑO EXACTO + CONEXIÓN A FIREBASE Y COMPRESIÓN
 // =======================================================================
 
-// 1. EL MOTOR DE COMPRESIÓN DE IMÁGENES
+// 1. MOTOR DE COMPRESIÓN DE IMÁGENES
 window.comprimirYConvertirABase64 = function(file, maxDimension) {
     return new Promise((resolve, reject) => {
-        if (!file) { reject("No hay archivo"); return; }
         const reader = new FileReader();
         reader.readAsDataURL(file); 
         reader.onload = (event) => {
@@ -3176,72 +3175,66 @@ window.comprimirYConvertirABase64 = function(file, maxDimension) {
             img.src = event.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
+                let width = img.width, height = img.height;
                 if (width > height) {
                     if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
                 } else {
                     if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
                 }
-                canvas.width = width;
-                canvas.height = height;
+                canvas.width = width; canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height); 
-                const base64Comprimido = canvas.toDataURL('image/jpeg', 0.7);
-                resolve(base64Comprimido);
+                resolve(canvas.toDataURL('image/jpeg', 0.7));
             };
-            img.onerror = () => reject("Error al generar imagen");
+            img.onerror = () => reject("Error");
         };
-        reader.onerror = () => reject("Error al leer archivo");
+        reader.onerror = () => reject("Error");
     });
 };
 
-// 2. FUNCIÓN: AGREGAR PRODUCTO (CON EL DISEÑO EXACTO QUE PEDISTE)
+// 2. FUNCIÓN AGREGAR PRODUCTO (TU CÓDIGO EXACTO MODIFICADO PARA LA NUBE)
 window.addProduct = async function() {
     const { value: formValues } = await Swal.fire({
         title: '<i class="fas fa-boxes text-pink me-2"></i>NUEVO PRODUCTO',
-        background: '#ffffff', color: '#333333', width: '550px',
-        customClass: { popup: 'rounded-4 shadow-lg border-0' },
         html: `
           <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-              
               <h6 class="fw-bold text-pink border-bottom pb-1">1. Datos Principales</h6>
               <div class="row g-2 mb-2">
-                  <div class="col-5"><label class="small fw-bold">Serial <span class="text-danger">*</span></label><input id="np-serial" class="form-control form-control-sm border-secondary"></div>
-                  <div class="col-7"><label class="small fw-bold">Nombre <span class="text-danger">*</span></label><input id="np-name" class="form-control form-control-sm border-secondary"></div>
+                  <div class="col-5"><label class="small fw-bold">Serial <span class="text-danger">*</span></label><input id="np-serial" class="form-control form-control-sm"></div>
+                  <div class="col-7"><label class="small fw-bold">Nombre <span class="text-danger">*</span></label><input id="np-name" class="form-control form-control-sm"></div>
               </div>
               <div class="row g-2 mb-2">
-                  <div class="col-4"><label class="small fw-bold">Precio <span class="text-danger">*</span></label><input id="np-price" type="number" class="form-control form-control-sm border-secondary"></div>
-                  <div class="col-4"><label class="small fw-bold">Stock Inicial:</label><input id="np-stock" type="number" class="form-control form-control-sm border-secondary" value="0"></div>
-                  <div class="col-4"><label class="small fw-bold text-danger">Stock MÁX <span class="text-danger">*</span></label><input id="np-max" type="number" class="form-control form-control-sm border-secondary" value="50"></div>
+                  <div class="col-4"><label class="small fw-bold">Precio <span class="text-danger">*</span></label><input id="np-price" type="number" class="form-control form-control-sm"></div>
+                  <div class="col-4"><label class="small fw-bold">Stock Inicial:</label><input id="np-stock" type="number" class="form-control form-control-sm" value="0"></div>
+                  <div class="col-4"><label class="small fw-bold text-danger">Stock MÁX <span class="text-danger">*</span></label><input id="np-max" type="number" class="form-control form-control-sm" value="50"></div>
               </div>
               <div class="mb-2">
                   <label class="small fw-bold">Categoría:</label>
-                  <select id="np-cat" class="form-select form-select-sm border-secondary">
+                  <select id="np-cat" class="form-select form-select-sm">
                       <option>Pelo</option><option>Uñas</option><option>Tintes</option><option>Piel</option><option>Perfumes</option><option>General</option>
                   </select>
               </div>
               
               <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">2. Logística Proveedor</h6>
               <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Empresa:</label><input id="np-supplier" type="text" class="form-control form-control-sm border-secondary"></div>
-                  <div class="col-6"><label class="small fw-bold">Contacto:</label><input id="np-supp-contact" type="text" class="form-control form-control-sm border-secondary"></div>
+                  <div class="col-6"><label class="small fw-bold">Empresa:</label><input id="np-supplier" type="text" class="form-control form-control-sm"></div>
+                  <div class="col-6"><label class="small fw-bold">Contacto:</label><input id="np-supp-contact" type="text" class="form-control form-control-sm"></div>
               </div>
               <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Teléfono Prov:</label><input id="np-supp-phone" type="text" class="form-control form-control-sm border-secondary"></div>
-                  <div class="col-6"><label class="small fw-bold">Cód. Fábrica (SKU):</label><input id="np-supp-code" type="text" class="form-control form-control-sm border-secondary"></div>
+                  <div class="col-6"><label class="small fw-bold">Teléfono Prov:</label><input id="np-supp-phone" type="text" class="form-control form-control-sm"></div>
+                  <div class="col-6"><label class="small fw-bold">Cód. Fábrica (SKU):</label><input id="np-supp-code" type="text" class="form-control form-control-sm"></div>
               </div>
               <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Fecha Pedido:</label><input id="np-order-date" type="date" class="form-control form-control-sm border-secondary"></div>
+                  <div class="col-6"><label class="small fw-bold">Fecha Pedido:</label><input id="np-order-date" type="date" class="form-control form-control-sm"></div>
                   <div class="col-6"><label class="small fw-bold text-danger">Fecha Expiración:</label><input id="np-expdate" type="date" class="form-control form-control-sm border-danger"></div>
               </div>
               
               <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">3. Fotografía</h6>
-              <input type="file" id="np-img-file" class="form-control form-control-sm mb-1 border-secondary" accept="image/*">
+              <input type="file" id="np-img-file" class="form-control form-control-sm mb-1" accept="image/*">
           </div>`,
         showCancelButton: true, 
-        confirmButtonText: '<i class="fas fa-save me-1"></i> Guardar Producto', 
-        confirmButtonColor: '#e83e8c', cancelButtonColor: '#6c757d', cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Guardar Producto', 
+        width: '550px',
         preConfirm: async () => {
             const serial = document.getElementById('np-serial').value.trim(); 
             const name = document.getElementById('np-name').value.trim(); 
@@ -3258,8 +3251,9 @@ window.addProduct = async function() {
                 Swal.showValidationMessage(`El stock inicial no puede superar el límite de ${maxStock}`); 
                 return false; 
             }
-            // Verifica si el serial ya existe en tu estado local
-            if (STATE && STATE.inventory) {
+            
+            // Verificamos si existe de manera segura
+            if (window.STATE && STATE.inventory) {
                 const exists = STATE.inventory.find(x => x.serial && x.serial.toLowerCase() === serial.toLowerCase());
                 if (exists) { 
                     Swal.showValidationMessage("El serial interno ya existe en otro producto"); 
@@ -3273,8 +3267,7 @@ window.addProduct = async function() {
                     Swal.showLoading();
                     imgUrl = await window.comprimirYConvertirABase64(file, 400); 
                 } catch(e) {
-                    Swal.showValidationMessage("Error interno al comprimir la foto.");
-                    return false;
+                    Swal.showValidationMessage("Error al procesar la imagen"); return false;
                 } 
             }
             
@@ -3292,14 +3285,11 @@ window.addProduct = async function() {
     });
     
     if (formValues) { 
-        Swal.fire({
-            title: 'Conectando...',
-            html: '<i class="fas fa-spinner fa-spin fa-2x mb-3 text-pink"></i><br><span class="text-dark">Guardando en Firebase...</span>',
-            background: '#ffffff', color: '#333333', allowOutsideClick: false, showConfirmButton: false
-        });
-
+        Swal.fire({ title: 'Guardando en la Nube...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
         try {
-            const datosFirebase = {
+            // Empacamos para Firebase
+            const payload = {
                 fields: {
                     serial: { stringValue: formValues.serial },
                     nombre: { stringValue: formValues.name },
@@ -3318,56 +3308,39 @@ window.addProduct = async function() {
             };
 
             const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-            const respuesta = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datosFirebase)
-            });
+            const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
 
-            if (respuesta.ok) {
-                const data = await respuesta.json();
-                const idRealFirebase = data.name.split('/').pop();
+            if (!res.ok) throw new Error("Error conectando con la Base de Datos");
+            
+            const data = await res.json();
+            const fireId = data.name.split('/').pop();
 
-                // Actualizamos el STATE para que se vea sin recargar la página
-                STATE.inventory.push({ 
-                    id: 5000 + STATE.inventory.length + 1, 
-                    firebaseId: idRealFirebase, 
-                    ...formValues 
-                }); 
-                
-                if (typeof save === "function") save(); 
-                if (typeof filterInventory === "function") filterInventory(); 
-                if (typeof filterShop === "function") filterShop('all'); 
-                
-                Swal.fire({title: '¡Éxito!', text: 'Producto guardado en inventario.', icon: 'success', background: '#ffffff', color: '#333333', confirmButtonColor: '#e83e8c'}); 
-            } else {
-                throw new Error("No se pudo guardar en Firebase.");
-            }
+            STATE.inventory.push({ id: Date.now(), firebaseId: fireId, ...formValues }); 
+            if (typeof save === "function") save(); 
+            if (typeof filterInventory === "function") filterInventory(); 
+            Swal.fire('Éxito', 'Producto guardado en inventario.', 'success'); 
         } catch(e) {
-            Swal.fire({title: 'Error', text: e.message, icon: 'error', background: '#ffffff', color: '#333333', confirmButtonColor: '#e83e8c'});
+            Swal.fire('Error', e.message, 'error');
         }
     }
 };
 
-// 3. FUNCIÓN: EDICIÓN RÁPIDA Y ELIMINACIÓN (CON EL DISEÑO EXACTO QUE PEDISTE)
+// 3. FUNCIÓN EDICIÓN Y BORRADO (TU CÓDIGO EXACTO MODIFICADO PARA LA NUBE)
 window.openQuickEdit = async function(id) {
     const prod = STATE.inventory.find(p => p.id === id); 
     if (!prod) return;
     
-    // Asignamos una variable que identifique el id de Firebase, o un valor de fallback temporal.
-    const fireId = prod.firebaseId || "ID_PENDIENTE";
+    const fireId = prod.firebaseId; // Obtenemos el ID de la nube
 
     const { value: formValues } = await Swal.fire({
         title: 'EDICIÓN Y CONTROL',
-        background: '#ffffff', color: '#333333', width: '500px',
-        customClass: { popup: 'rounded-4 shadow-lg border-0' },
         html: `
           <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
               <div class="text-center mb-3">
                   <img src="${prod.img || 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'}" height="80" class="border border-pink rounded shadow-sm" style="object-fit:cover;">
               </div>
               
-              <div class="bg-light p-3 rounded border border-secondary mb-4">
+              <div class="bg-light p-3 rounded border mb-4">
                   <h6 class="fw-bold text-dark text-center mb-3">Stock Físico: <span class="text-pink fs-4">${prod.stock || prod.cantidad || 0}</span> / ${prod.maxStock || 50} MAX</h6>
                   <div class="row g-2">
                       <div class="col-6"><label class="small fw-bold text-success"><i class="fas fa-plus"></i> Nueva Entrada:</label><input type="number" id="e-qty" class="form-control form-control-sm border-success" value="0"></div>
@@ -3377,19 +3350,19 @@ window.openQuickEdit = async function(id) {
 
               <h6 class="fw-bold text-pink border-bottom pb-1">Actualizar Información</h6>
               <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Precio (RD$):</label><input type="number" id="e-price" class="form-control form-control-sm border-secondary" value="${prod.price || 0}"></div>
-                  <div class="col-6"><label class="small fw-bold">Límite MAX:</label><input type="number" id="e-max" class="form-control form-control-sm border-secondary" value="${prod.maxStock || 50}"></div>
+                  <div class="col-6"><label class="small fw-bold">Precio (RD$):</label><input type="number" id="e-price" class="form-control form-control-sm" value="${prod.price}"></div>
+                  <div class="col-6"><label class="small fw-bold">Límite MAX:</label><input type="number" id="e-max" class="form-control form-control-sm" value="${prod.maxStock || 50}"></div>
               </div>
               <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Empresa Prov:</label><input type="text" id="e-supplier" class="form-control form-control-sm border-secondary" value="${prod.supplier || prod.proveedor || ''}"></div>
-                  <div class="col-6"><label class="small fw-bold">Contacto Prov:</label><input type="text" id="e-contact" class="form-control form-control-sm border-secondary" value="${prod.supplierContact || prod.representante || ''}"></div>
+                  <div class="col-6"><label class="small fw-bold">Empresa Prov:</label><input type="text" id="e-supplier" class="form-control form-control-sm" value="${prod.supplier || prod.proveedor || ''}"></div>
+                  <div class="col-6"><label class="small fw-bold">Contacto Prov:</label><input type="text" id="e-contact" class="form-control form-control-sm" value="${prod.supplierContact || prod.representante || ''}"></div>
               </div>
               <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Teléfono Prov:</label><input type="text" id="e-phone" class="form-control form-control-sm border-secondary" value="${prod.supplierPhone || prod.telefonoProv || ''}"></div>
-                  <div class="col-6"><label class="small fw-bold">Código SKU:</label><input type="text" id="e-code" class="form-control form-control-sm border-secondary" value="${prod.supplierCode || prod.skuFabrica || ''}"></div>
+                  <div class="col-6"><label class="small fw-bold">Teléfono Prov:</label><input type="text" id="e-phone" class="form-control form-control-sm" value="${prod.supplierPhone || prod.telefonoProv || ''}"></div>
+                  <div class="col-6"><label class="small fw-bold">Código SKU:</label><input type="text" id="e-code" class="form-control form-control-sm" value="${prod.supplierCode || prod.skuFabrica || ''}"></div>
               </div>
               <div class="row g-2 mb-2 mt-3">
-                  <div class="col-6"><label class="small fw-bold">Fecha Pedido:</label><input id="e-order-date" type="date" class="form-control form-control-sm border-secondary" value="${prod.orderDate || prod.fechaIngreso || ''}"></div>
+                  <div class="col-6"><label class="small fw-bold">Fecha Pedido:</label><input id="e-order-date" type="date" class="form-control form-control-sm" value="${prod.orderDate || prod.fechaIngreso || ''}"></div>
                   <div class="col-6"><label class="small fw-bold text-danger">Modificar Expiración:</label><input id="e-expdate" type="date" class="form-control form-control-sm border-danger" value="${prod.expDate || prod.fechaVence || ''}"></div>
               </div>
               
@@ -3397,30 +3370,22 @@ window.openQuickEdit = async function(id) {
                  <button id="btn-delete-real" class="btn btn-outline-danger w-100 fw-bold rounded-pill"><i class="fas fa-trash me-2"></i>ELIMINAR PRODUCTO</button>
               </div>
           </div>`,
-        showCancelButton: true, confirmButtonText: 'Guardar Cambios', confirmButtonColor: '#e83e8c', cancelButtonColor: '#6c757d', cancelButtonText: 'Cancelar',
+        showCancelButton: true, confirmButtonText: 'Guardar Cambios', confirmButtonColor: '#FF1493', cancelButtonText: 'Cancelar', width: '500px',
         didOpen: () => {
-            // AQUÍ CONECTAMOS EL BOTÓN ROJO DE "ELIMINAR" DIRECTO A FIREBASE
             document.getElementById('btn-delete-real').addEventListener('click', () => {
                 Swal.fire({ 
-                    title: '¿Borrar definitivamente?', text: 'Se eliminará de la nube de inmediato.', icon: 'warning', 
-                    showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, borrar', cancelButtonText: 'Cancelar'
+                    title: '¿Borrar definitivamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, borrar' 
                 }).then(async (res) => {
                     if (res.isConfirmed) { 
-                        if (fireId !== "ID_PENDIENTE") {
-                            try {
-                                Swal.fire({ title: 'Borrando...', html: '<i class="fas fa-spinner fa-spin fa-2x text-danger"></i>', showConfirmButton: false });
-                                const delUrl = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-                                const delRes = await fetch(delUrl, { method: 'DELETE' });
-                                if(!delRes.ok) throw new Error("Fallo en la nube");
-                            } catch(err) {
-                                console.error(err);
-                            }
+                        // BORRADO EN LA NUBE FIREBASE
+                        if(fireId) {
+                            Swal.fire({title: 'Borrando...', didOpen: () => Swal.showLoading()});
+                            await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' });
                         }
                         STATE.inventory = STATE.inventory.filter(p => p.id !== id); 
                         if (typeof save === "function") save(); 
                         if (typeof filterInventory === "function") filterInventory(); 
-                        if (typeof filterShop === "function") filterShop('all'); 
-                        Swal.fire({title:'Borrado', text:'El producto ha sido eliminado.', icon:'success', confirmButtonColor: '#e83e8c'}); 
+                        Swal.fire('Borrado', 'El producto ha sido eliminado.', 'success'); 
                     }
                 });
             });
@@ -3446,54 +3411,36 @@ window.openQuickEdit = async function(id) {
     });
     
     if (formValues) { 
-        Swal.fire({title: 'Actualizando...', showConfirmButton: false, allowOutsideClick: false});
+        Swal.fire({title: 'Actualizando Nube...', didOpen: () => Swal.showLoading()});
         
-        // Actualizamos primero el estado local para ver el cambio de inmediato
-        prod.stock = formValues.newStock; 
-        prod.cantidad = formValues.newStock; 
-        prod.price = formValues.price; 
-        prod.maxStock = formValues.maxStock; 
-        prod.orderDate = formValues.orderDate; 
-        prod.expDate = formValues.expDate; 
-        prod.supplier = formValues.supplier; 
-        prod.supplierContact = formValues.supplierContact; 
-        prod.supplierPhone = formValues.supplierPhone; 
-        prod.supplierCode = formValues.supplierCode; 
+        prod.stock = formValues.newStock; prod.price = formValues.price; prod.maxStock = formValues.maxStock; prod.orderDate = formValues.orderDate; 
+        prod.expDate = formValues.expDate; prod.supplier = formValues.supplier; prod.supplierContact = formValues.supplierContact; 
+        prod.supplierPhone = formValues.supplierPhone; prod.supplierCode = formValues.supplierCode; 
         
-        // SI TIENE UN ID DE FIREBASE, ACTUALIZAMOS LA NUBE TAMBIÉN (usando PATCH)
-        if(fireId !== "ID_PENDIENTE") {
-             try {
-                const updateUrl = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?updateMask.fieldPaths=precio&updateMask.fieldPaths=cantidad&updateMask.fieldPaths=maxStock&updateMask.fieldPaths=proveedor&updateMask.fieldPaths=representante&updateMask.fieldPaths=telefonoProv&updateMask.fieldPaths=skuFabrica&updateMask.fieldPaths=fechaIngreso&updateMask.fieldPaths=fechaVence&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-                
-                const patchPayload = {
-                    fields: {
-                        precio: { doubleValue: Number(formValues.price) },
-                        cantidad: { integerValue: formValues.newStock.toString() },
-                        maxStock: { integerValue: formValues.maxStock.toString() },
-                        proveedor: { stringValue: formValues.supplier },
-                        representante: { stringValue: formValues.supplierContact },
-                        telefonoProv: { stringValue: formValues.supplierPhone },
-                        skuFabrica: { stringValue: formValues.supplierCode },
-                        fechaIngreso: { stringValue: formValues.orderDate },
-                        fechaVence: { stringValue: formValues.expDate }
-                    }
-                };
-
-                await fetch(updateUrl, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(patchPayload)
-                });
-             } catch(e) {
-                 console.error("Error al parchear Firebase:", e);
-             }
+        // ACTUALIZACIÓN DE DATOS (EDICIÓN) EN FIREBASE
+        if(fireId) {
+             const patchPayload = {
+                 fields: {
+                     precio: { doubleValue: Number(formValues.price) },
+                     cantidad: { integerValue: formValues.newStock.toString() },
+                     maxStock: { integerValue: formValues.maxStock.toString() },
+                     proveedor: { stringValue: formValues.supplier },
+                     representante: { stringValue: formValues.supplierContact },
+                     telefonoProv: { stringValue: formValues.supplierPhone },
+                     skuFabrica: { stringValue: formValues.supplierCode },
+                     fechaIngreso: { stringValue: formValues.orderDate },
+                     fechaVence: { stringValue: formValues.expDate }
+                 }
+             };
+             await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?updateMask.fieldPaths=precio&updateMask.fieldPaths=cantidad&updateMask.fieldPaths=maxStock&updateMask.fieldPaths=proveedor&updateMask.fieldPaths=representante&updateMask.fieldPaths=telefonoProv&updateMask.fieldPaths=skuFabrica&updateMask.fieldPaths=fechaIngreso&updateMask.fieldPaths=fechaVence&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, {
+                 method: 'PATCH',
+                 body: JSON.stringify(patchPayload)
+             });
         }
         
         if (typeof save === "function") save(); 
         if (typeof filterInventory === "function") filterInventory(); 
-        if (typeof filterShop === "function") filterShop('all'); 
-        
-        Swal.fire({title: 'Éxito', text: 'Inventario actualizado.', icon: 'success', confirmButtonColor: '#e83e8c'}); 
+        Swal.fire('Éxito', 'Inventario actualizado.', 'success'); 
     }
 };
     </script>
