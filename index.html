@@ -2830,54 +2830,64 @@
 
     </script>
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
-<script>
-  // Configuración
-  const firebaseConfig = {
-    apiKey: "AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q",
-    authDomain: "glam-beauty-salon.firebaseapp.com",
-    projectId: "glam-beauty-salon",
-    storageBucket: "glam-beauty-salon.firebasestorage.app",
-    messagingSenderId: "255268574975",
-    appId: "1:255268574975:web:7d8ffcbc92ee43703bdeca",
-    measurementId: "G-301VXYQYT0"
-  };
+    <script>
+      // 1. Tus llaves de acceso
+      const firebaseConfig = {
+        apiKey: "AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q",
+        authDomain: "glam-beauty-salon.firebaseapp.com",
+        projectId: "glam-beauty-salon",
+        storageBucket: "glam-beauty-salon.firebasestorage.app",
+        messagingSenderId: "255268574975",
+        appId: "1:255268574975:web:7d8ffcbc92ee43703bdeca"
+      };
 
-  // Inicializar Firebase (Versión compatible)
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+      // 2. Encendemos Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      
+      // 3. Función para descargar productos
+      async function cargarInventarioDesdeNube() {
+          try {
+              const cajaProductos = await db.collection("producto").get();
+              const productosNuevos = [];
 
-  // Función de carga
-  async function cargarInventarioDesdeNube() {
-      try {
-          const snapshot = await db.collection("producto").get();
-          let productosNuevos = [];
-          snapshot.forEach(doc => {
-              let datos = doc.data();
-              productosNuevos.push({
-                  id: doc.id,
-                  name: datos.nombre || datos.name || "Producto",
-                  stock: Number(datos.cantidad || datos.stock || 0),
-                  price: Number(datos.precio || datos.price || 0),
-                  cat: "General",
-                  img: "https://via.placeholder.com/150"
+              // Por cada producto, le ponemos "paracaídas" a los datos vacíos
+              cajaProductos.forEach((doc) => {
+                  let datos = doc.data();
+                  productosNuevos.push({
+                      id: doc.id,
+                      serial: datos.serial || "FB-" + doc.id.substring(0,4),
+                      name: datos.nombre || "Producto sin nombre", 
+                      price: Number(datos.precio || 0),
+                      stock: Number(datos.cantidad || 0),
+                      maxStock: Number(datos.maxStock || 50), // Evita que el admin explote
+                      cat: datos.categoria || "Pelo", 
+                      supplier: datos.proveedor || "Firebase Cloud",
+                      supplierContact: "N/A",
+                      supplierCode: "N/A",
+                      img: datos.img || "https://images.unsplash.com/photo-1584949504125-51d8d814ae3d?w=400" // Foto por defecto
+                  });
               });
-          });
-          
-          if(productosNuevos.length > 0) {
-              STATE.inventory = productosNuevos;
-              console.log("¡Carga exitosa!");
-              if(typeof filterShop === 'function') filterShop('all');
-          }
-      } catch (e) {
-          console.error("Error al cargar:", e);
-      }
-  }
 
-  cargarInventarioDesdeNube();
-</script>
+              if (productosNuevos.length > 0) {
+                  // Guardamos los productos en tu sistema
+                  STATE.inventory = productosNuevos;
+                  
+                  // Actualizamos las dos pantallas sin alertas molestas
+                  if (typeof filterShop === "function") filterShop('all');
+                  if (typeof filterInventory === "function") filterInventory();
+              }
+          } catch (error) {
+              console.error("Error leyendo Firebase:", error);
+          }
+      }
+
+      // Arrancamos la lectura
+      cargarInventarioDesdeNube();
+    </script>
 
 
 </body>
