@@ -686,7 +686,7 @@
                         <button class="btn btn-sm btn-warning rounded-circle me-1" title="Pagar Nómina" onclick="openStaffPayments()">
                             <i class="fas fa-hand-holding-usd"></i>
                         </button>
-                        <button class="btn btn-sm btn-dark rounded-circle" onclick="addNewStaff()">
+                       <button class="btn btn-sm btn-dark rounded-circle" onclick="window.addNewStaff()">
                             <i class="fas fa-user-plus"></i>
                         </button>
                     </div>
@@ -1929,6 +1929,92 @@
             }
         }
     }
+    
+  /* --- AGREGAR NUEVO STAFF A LA NUBE --- */
+    window.addNewStaff = async function() {
+        const { value: formValues } = await Swal.fire({ 
+            title: 'NUEVO ESPECIALISTA VIP', 
+            html: `
+            <div class="text-start">
+                <label class="small fw-bold">Foto del Profesional:</label>
+                <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
+                
+                <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+                <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
+                
+                <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
+                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
+                
+                <label class="small fw-bold text-pink">Comisión (%)</label>
+                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
+            </div>`, 
+            showCancelButton: true, 
+            confirmButtonColor: '#FF1493',
+            confirmButtonText: 'Guardar en Google ☁️', 
+            preConfirm: async () => { 
+                const name = document.getElementById('ns-name').value.trim(); 
+                const spec = document.getElementById('ns-spec').value.trim(); 
+                const comm = document.getElementById('ns-comm').value || "20";
+                const file = document.getElementById('ns-file').files[0]; 
+                
+                if (!name || !spec) { 
+                    Swal.showValidationMessage('Nombre y Especialidad obligatorios'); 
+                    return false; 
+                } 
+                
+                let finalImg = 'https://via.placeholder.com/150'; 
+                if (file) { 
+                    try { 
+                        Swal.showLoading();
+                        finalImg = await comprimirYConvertirABase64(file, 300); 
+                    } catch(e) { console.log("Error foto"); } 
+                } 
+                return { name, spec, comm, img: finalImg }; 
+            } 
+        });
+        
+        if (formValues) { 
+            Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+
+            try {
+                const paqueteStaff = {
+                    fields: {
+                        nombre: { stringValue: formValues.name },
+                        especialidad: { stringValue: formValues.spec },
+                        comision: { stringValue: formValues.comm.toString() },
+                        img: { stringValue: formValues.img },
+                        status: { stringValue: "Offline" }
+                    }
+                };
+
+                // URL limpia sin espacios invisibles
+                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+                
+                const respuesta = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paqueteStaff)
+                });
+
+                if (respuesta.ok) {
+                    Swal.fire('¡Logrado!', 'Personal guardado en la nube.', 'success');
+                    // IMPORTANTE: Refrescamos la memoria bajando los datos de nuevo
+                    if (typeof cargarTodoDesdeNube === "function") {
+                        cargarTodoDesdeNube(); 
+                    } else {
+                        console.warn("cargarTodoDesdeNube no existe, recargando página");
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                } else {
+                    const errInfo = await respuesta.json();
+                    console.error("Google Cloud dice:", errInfo);
+                    throw new Error("La nube rechazó la petición");
+                }
+            } catch (e) {
+                Swal.fire('Error', 'No subió: ' + e.message, 'error');
+            }
+        }
+    };
 
     async function openStaffPayments() {
         const { value: formValues } = await Swal.fire({
