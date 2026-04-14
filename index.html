@@ -847,107 +847,39 @@
     </div>
 </div>
 
-<script>
-    /* ==========================================================================
+           /* ==========================================================================
        1. BASE DE DATOS LOCAL Y ESTADO GLOBAL (STATE)
        ========================================================================== */
     const DEFAULT_STATE = { 
-        users: [
-            { 
-                id: 1, 
-                email: 'admin', 
-                password: '12345', 
-                role: 'admin', 
-                name: 'Administrador Maestro' 
-            }
-        ],
-        currentUser: null, 
-        
-        caja: 0, 
-        sales: [], 
-        cart: [], 
-        appts: [], 
-        calcInput: '0', 
-        
-        inventory: [ 
-            { 
-                id: 101, 
-                serial: "KER-001", 
-                brand: "Kérastase", 
-                supplier: "L'Oréal", 
-                supplierContact: "Maria Ventas", 
-                supplierPhone: "809-555-1234", 
-                supplierCode: "SKU-998", 
-                orderDate: "2026-01-10", 
-                name: "Shampoo Nutritivo", 
-                price: 1500, 
-                stock: 20, 
-                maxStock: 50, 
-                cat: "Pelo", 
-                expDate: "2027-12-31", 
-                img: "https://images.unsplash.com/photo-1584949504125-51d8d814ae3d?w=400" 
-            }
-        ], 
-        
-        staff: [ 
-            { 
-                id: 1, 
-                empId: "EMP-001", 
-                name: "Valentina Ross", 
-                specialty: "Máster Colorista",
-                commission: 20, 
-                phone: "809-555-0001", 
-                status: "Offline", 
-                clockInTime: null, 
-                salesTotal: 0, 
-                img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" 
-            } 
-        ] 
+        users: [{ id: 1, email: 'admin', password: '12345', role: 'admin', name: 'Administrador Maestro' }],
+        currentUser: null, caja: 0, sales: [], cart: [], appts: [], calcInput: '0', inventory: [], staff: [] 
     };
 
     let STATE = { ...DEFAULT_STATE };
-    let localData = null;
 
     try { 
-        localData = JSON.parse(localStorage.getItem('GLAM_MASTER_KEY'));
+        let localData = JSON.parse(localStorage.getItem('GLAM_MASTER_KEY'));
         if (localData) {
             STATE.caja = Number(localData.caja) || 0; 
             STATE.sales = Array.isArray(localData.sales) ? localData.sales : []; 
             STATE.cart = []; 
             STATE.appts = Array.isArray(localData.appts) ? localData.appts : []; 
-            
-            if (Array.isArray(localData.inventory) && localData.inventory.length > 0) {
-                STATE.inventory = localData.inventory;
-            }
-            if (Array.isArray(localData.staff) && localData.staff.length > 0) {
-                STATE.staff = localData.staff; 
-            }
-            if (Array.isArray(localData.users) && localData.users.length > 0) {
-                STATE.users = localData.users;
-            }
-            if (localData.currentUser) {
-                STATE.currentUser = localData.currentUser;
-            }
+            if (Array.isArray(localData.inventory) && localData.inventory.length > 0) STATE.inventory = localData.inventory;
+            if (Array.isArray(localData.staff) && localData.staff.length > 0) STATE.staff = localData.staff; 
+            if (Array.isArray(localData.users) && localData.users.length > 0) STATE.users = localData.users;
+            if (localData.currentUser) STATE.currentUser = localData.currentUser;
         }
-    } catch (e) {
-        console.error("Iniciando con base de datos limpia por error previo.");
-    }
+    } catch (e) { console.error("Iniciando con base de datos limpia por error previo."); }
     
-    let map = null;
-    let marker = null; 
-
-    function save() { 
-        localStorage.setItem('GLAM_MASTER_KEY', JSON.stringify(STATE)); 
-    }
+    let map = null; let marker = null; 
+    function save() { localStorage.setItem('GLAM_MASTER_KEY', JSON.stringify(STATE)); }
 
     /* ==========================================================================
        2. NAVEGACIÓN Y CONTROL DE MENÚ
        ========================================================================== */
     function updateNavMenu() {
-        const guestLogin = document.getElementById('nav-guest-login');
-        const userHeader = document.getElementById('nav-user-header');
-        const adminDash = document.getElementById('nav-admin-dashboard');
-        const userLogout = document.getElementById('nav-user-logout');
+        const guestLogin = document.getElementById('nav-guest-login'); const userHeader = document.getElementById('nav-user-header');
+        const adminDash = document.getElementById('nav-admin-dashboard'); const userLogout = document.getElementById('nav-user-logout');
         const userName = document.getElementById('nav-user-name');
 
         if (STATE.currentUser) {
@@ -955,12 +887,7 @@
             if (userHeader) userHeader.classList.remove('hidden');
             if (userLogout) userLogout.classList.remove('hidden');
             if (userName) userName.innerText = STATE.currentUser.name.split(' ')[0];
-            
-            if (STATE.currentUser.role === 'admin') {
-                if (adminDash) adminDash.classList.remove('hidden');
-            } else {
-                if (adminDash) adminDash.classList.add('hidden');
-            }
+            if (STATE.currentUser.role === 'admin') { if (adminDash) adminDash.classList.remove('hidden'); } else { if (adminDash) adminDash.classList.add('hidden'); }
         } else {
             if (guestLogin) guestLogin.classList.remove('hidden');
             if (userHeader) userHeader.classList.add('hidden');
@@ -970,26 +897,18 @@
     }
 
     function showLandingPage() {
-        document.getElementById('admin-view').classList.add('hidden');
-        document.getElementById('landing-view').classList.remove('hidden');
-        renderClient();
-        filterShop('all');
+        document.getElementById('admin-view').classList.add('hidden'); document.getElementById('landing-view').classList.remove('hidden');
+        renderClient(); filterShop('all');
     }
 
     function showAdminDashboard() {
-        if (!STATE.currentUser || STATE.currentUser.role !== 'admin') {
-            Swal.fire('Acceso Denegado', 'No tienes permisos de administrador.', 'error');
-            return;
-        }
-        document.getElementById('landing-view').classList.add('hidden');
-        document.getElementById('admin-view').classList.remove('hidden');
-        initCalcGrid();
-        renderAdmin();
-        filterInventory();
+        if (!STATE.currentUser || STATE.currentUser.role !== 'admin') return Swal.fire('Acceso Denegado', 'No tienes permisos de administrador.', 'error');
+        document.getElementById('landing-view').classList.add('hidden'); document.getElementById('admin-view').classList.remove('hidden');
+        initCalcGrid(); renderAdmin(); filterInventory();
     }
 
     /* ==========================================================================
-       3. SISTEMA DE AUTENTICACIÓN Y CORREOS DE VERIFICACIÓN (FORMSPREE)
+       3. AUTENTICACIÓN Y USUARIOS
        ========================================================================== */
     function openAuthModal() {
         let modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
@@ -998,720 +917,201 @@
     }
 
     function toggleAuthModalForms() {
-        const loginForm = document.getElementById('modal-form-login');
-        const registerForm = document.getElementById('modal-form-register');
-        if (loginForm.classList.contains('hidden')) {
-            loginForm.classList.remove('hidden'); 
-            registerForm.classList.add('hidden');
-        } else {
-            loginForm.classList.add('hidden'); 
-            registerForm.classList.remove('hidden');
-        }
+        const loginForm = document.getElementById('modal-form-login'); const registerForm = document.getElementById('modal-form-register');
+        if (loginForm.classList.contains('hidden')) { loginForm.classList.remove('hidden'); registerForm.classList.add('hidden'); } 
+        else { loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); }
     }
 
     function handleLogin() { 
-        const emailInput = document.getElementById('login-email').value.trim(); 
-        const passInput = document.getElementById('login-password').value.trim(); 
-        
-        if (!emailInput || !passInput) {
-            return Swal.fire('Atención', 'Por favor llena ambos campos.', 'warning');
-        }
-
+        const emailInput = document.getElementById('login-email').value.trim(); const passInput = document.getElementById('login-password').value.trim(); 
+        if (!emailInput || !passInput) return Swal.fire('Atención', 'Por favor llena ambos campos.', 'warning');
         const userFound = STATE.users.find(u => u.email.toLowerCase() === emailInput.toLowerCase() && u.password === passInput);
-        
         if (userFound) { 
-            STATE.currentUser = userFound; 
-            save(); 
-            updateNavMenu();
-            
-            let modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
-            if (modal) modal.hide();
-            
-            Swal.fire({ 
-                icon: 'success', 
-                title: 'Bienvenido de vuelta', 
-                text: userFound.name, 
-                timer: 1500, 
-                showConfirmButton: false 
-            });
-            
+            STATE.currentUser = userFound; save(); updateNavMenu(); 
+            let modal = bootstrap.Modal.getInstance(document.getElementById('authModal')); if (modal) modal.hide(); 
+            Swal.fire({ icon: 'success', title: 'Bienvenido', text: userFound.name, timer: 1500, showConfirmButton: false }); 
             if (userFound.role === 'admin') showAdminDashboard();
-        } else { 
-            Swal.fire('Acceso Denegado', 'Correo o contraseña incorrectos.', 'error'); 
-        } 
+        } else { Swal.fire('Acceso Denegado', 'Correo o contraseña incorrectos.', 'error'); } 
     }
 
     function handleRegister() {
-        const name = document.getElementById('reg-name').value.trim();
-        const email = document.getElementById('reg-email').value.trim();
-        const pass = document.getElementById('reg-password').value.trim();
+        const name = document.getElementById('reg-name').value.trim(); const email = document.getElementById('reg-email').value.trim(); const pass = document.getElementById('reg-password').value.trim();
+        if (!name || !email || !pass) return Swal.fire('Atención', 'Todos los campos son obligatorios.', 'warning');
+        if (STATE.users.find(u => u.email.toLowerCase() === email.toLowerCase())) return Swal.fire('Error', 'Ese correo ya está registrado.', 'error');
 
-        if (!name || !email || !pass) {
-            return Swal.fire('Atención', 'Todos los campos son obligatorios.', 'warning');
-        }
-
-        const emailExists = STATE.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-        if (emailExists) {
-            return Swal.fire('Error', 'Ese correo ya está registrado.', 'error');
-        }
-
-        // Generar código de validación
         const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
-
-        // -------------------------------------------------------------
-        // ENVÍO DE CORREO DE VERIFICACIÓN VÍA FORMSPREE
-        // -------------------------------------------------------------
-        fetch("https://formspree.io/f/xkopberl", {
-            method: "POST",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                Asunto: "CÓDIGO DE VERIFICACIÓN - GLAM BOUTIQUE",
-                Cliente_Correo: email,
-                Nombre: name,
-                Codigo_Verificacion: verificationCode,
-                Mensaje: "Usa este código para activar tu cuenta en nuestro sistema."
-            })
-        }).catch(err => console.log("Error de Formspree: ", err));
-
-        let modal = bootstrap.Modal.getInstance(document.getElementById('authModal'));
-        if (modal) modal.hide();
-
-        Swal.fire({
-            title: 'Verificación de Correo',
-            html: `Hemos enviado un código a <b>${email}</b>.<br><br><i>(Nota de prueba: tu código es <b>${verificationCode}</b>)</i>`,
-            input: 'text',
-            inputPlaceholder: 'Ingresa el código de 4 dígitos',
-            showCancelButton: true,
-            confirmButtonText: 'Verificar Cuenta',
-            confirmButtonColor: '#FF1493'
-        }).then((result) => {
+        fetch("https://formspree.io/f/xkopberl", { method: "POST", headers: { "Accept": "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ Asunto: "CÓDIGO DE VERIFICACIÓN", Cliente_Correo: email, Nombre: name, Codigo_Verificacion: verificationCode }) }).catch(err => console.log(err));
+        
+        let modal = bootstrap.Modal.getInstance(document.getElementById('authModal')); if (modal) modal.hide();
+        Swal.fire({ title: 'Verificación', html: `Enviamos código a <b>${email}</b>.<br><br><i>(Prueba: <b>${verificationCode}</b>)</i>`, input: 'text', showCancelButton: true, confirmButtonText: 'Verificar' }).then((result) => {
             if (result.isConfirmed) {
                 if (result.value === verificationCode) {
                     const newUser = { id: Date.now(), name: name, email: email, password: pass, role: 'cliente' };
-                    STATE.users.push(newUser); 
-                    STATE.currentUser = newUser; 
-                    save(); 
-                    updateNavMenu();
-
-                    Swal.fire({ 
-                        icon: 'success', 
-                        title: '¡Cuenta Creada y Verificada!', 
-                        text: `Disfruta la experiencia Glam, ${name}.`, 
-                        timer: 2000, 
-                        showConfirmButton: false 
-                    });
-                } else {
-                    Swal.fire('Error', 'Código incorrecto. Vuelve a registrarte.', 'error');
-                }
+                    STATE.users.push(newUser); STATE.currentUser = newUser; save(); updateNavMenu();
+                    Swal.fire({ icon: 'success', title: '¡Verificada!', text: `Bienvenida ${name}.`, timer: 2000, showConfirmButton: false });
+                } else { Swal.fire('Error', 'Código incorrecto.', 'error'); }
             }
         });
     }
 
-    function logout() {
-        STATE.currentUser = null; 
-        save(); 
-        location.reload();
-    }
+    function logout() { STATE.currentUser = null; save(); location.reload(); }
 
-    /* ==========================================================================
-       4. GESTIÓN DE USUARIOS
-       ========================================================================== */
     function manageUsers() {
-        let html = `
-        <div class="text-start mb-3">
-            <button class="btn btn-sm btn-dark rounded-pill fw-bold" onclick="createNewUserAdmin()">
-                <i class="fas fa-plus me-1"></i>Crear Acceso
-            </button>
-        </div>
-        <div class="list-group text-start shadow-sm border-pink rounded-3" style="max-height:400px; overflow-y:auto;">`;
-        
+        let html = `<div class="text-start mb-3"><button class="btn btn-sm btn-dark rounded-pill fw-bold" onclick="createNewUserAdmin()"><i class="fas fa-plus me-1"></i>Crear</button></div><div class="list-group text-start shadow-sm border-pink rounded-3" style="max-height:400px; overflow-y:auto;">`;
         STATE.users.forEach(u => {
             const badgeColor = u.role === 'admin' ? 'bg-danger' : 'bg-primary';
-            html += `
-            <div class="list-group-item d-flex flex-column p-3 border-bottom">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-user-circle me-2 text-muted"></i>${u.name}</h6>
-                    <span class="badge ${badgeColor} text-uppercase">${u.role}</span>
-                </div>
-                <small class="text-muted mb-2">Email: <b>${u.email}</b> | Clave: <b>${u.password}</b></small>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-dark rounded-pill py-0" onclick="editUserPassword(${u.id})">Cambiar Clave</button>
-                    ${u.email !== 'admin' ? `<button class="btn btn-sm btn-outline-danger rounded-pill py-0" onclick="deleteUser(${u.id})">Borrar</button>` : ''}
-                </div>
-            </div>`;
+            html += `<div class="list-group-item d-flex flex-column p-3 border-bottom"><div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0 fw-bold"><i class="fas fa-user-circle me-2 text-muted"></i>${u.name}</h6><span class="badge ${badgeColor}">${u.role}</span></div><small class="text-muted mb-2">Email: <b>${u.email}</b> | Clave: <b>${u.password}</b></small><div class="d-flex gap-2"><button class="btn btn-sm btn-outline-dark rounded-pill py-0" onclick="editUserPassword(${u.id})">Cambiar Clave</button>${u.email !== 'admin' ? `<button class="btn btn-sm btn-outline-danger rounded-pill py-0" onclick="deleteUser(${u.id})">Borrar</button>` : ''}</div></div>`;
         });
-        html += '</div>';
-        
-        Swal.fire({ 
-            title: '<i class="fas fa-users-cog text-pink me-2"></i>Gestión de Accesos', 
-            html: html, 
-            width: '600px', 
-            showCloseButton: true, 
-            showConfirmButton: false 
-        });
+        html += '</div>'; Swal.fire({ title: 'Gestión de Accesos', html: html, width: '600px', showCloseButton: true, showConfirmButton: false });
     }
 
     async function createNewUserAdmin() {
-        const { value: formValues } = await Swal.fire({
-            title: 'Crear Nuevo Acceso',
-            html: `
-                <input id="u-name" class="swal2-input" placeholder="Nombre completo">
-                <input id="u-email" class="swal2-input" placeholder="Correo electrónico">
-                <input id="u-pass" class="swal2-input" placeholder="Contraseña">
-                <select id="u-role" class="swal2-select">
-                    <option value="cliente">Cliente</option>
-                    <option value="admin">Administrador</option>
-                </select>`,
-            focusConfirm: false, 
-            showCancelButton: true, 
-            confirmButtonText: 'Crear',
-            preConfirm: () => {
-                const name = document.getElementById('u-name').value.trim();
-                const email = document.getElementById('u-email').value.trim();
-                const pass = document.getElementById('u-pass').value.trim();
-                const role = document.getElementById('u-role').value;
-                
-                if(!name || !email || !pass) { 
-                    Swal.showValidationMessage('Faltan datos'); 
-                    return false; 
-                }
-                if(STATE.users.find(u => u.email.toLowerCase() === email.toLowerCase())) { 
-                    Swal.showValidationMessage('Ese usuario o correo ya existe'); 
-                    return false; 
-                }
-                return { name, email, pass, role };
-            }
-        });
-        
-        if (formValues) {
-            STATE.users.push({ id: Date.now(), name: formValues.name, email: formValues.email, password: formValues.pass, role: formValues.role });
-            save(); 
-            Swal.fire('Creado', 'Usuario agregado con éxito', 'success').then(() => manageUsers());
-        }
+        const { value: formValues } = await Swal.fire({ title: 'Crear Acceso', html: `<input id="u-name" class="swal2-input" placeholder="Nombre"><input id="u-email" class="swal2-input" placeholder="Correo"><input id="u-pass" class="swal2-input" placeholder="Clave"><select id="u-role" class="swal2-select"><option value="cliente">Cliente</option><option value="admin">Admin</option></select>`, showCancelButton: true, preConfirm: () => {
+            const name = document.getElementById('u-name').value.trim(); const email = document.getElementById('u-email').value.trim(); const pass = document.getElementById('u-pass').value.trim(); const role = document.getElementById('u-role').value;
+            if(!name || !email || !pass) { Swal.showValidationMessage('Faltan datos'); return false; }
+            if(STATE.users.find(u => u.email.toLowerCase() === email.toLowerCase())) { Swal.showValidationMessage('Ya existe'); return false; }
+            return { name, email, pass, role };
+        }});
+        if (formValues) { STATE.users.push({ id: Date.now(), ...formValues }); save(); Swal.fire('Creado', '', 'success').then(() => manageUsers()); }
     }
 
     async function editUserPassword(id) {
         const u = STATE.users.find(x => x.id === id);
-        const { value: newPass } = await Swal.fire({
-            title: `Modificar Clave de ${u.name}`, 
-            input: 'text', 
-            inputLabel: 'Nueva Contraseña', 
-            inputValue: u.password, 
-            showCancelButton: true
-        });
-        if (newPass && newPass.trim() !== '') {
-            u.password = newPass.trim(); 
-            save(); 
-            Swal.fire('Modificado', 'Contraseña actualizada', 'success').then(() => manageUsers());
-        }
+        const { value: newPass } = await Swal.fire({ title: `Clave de ${u.name}`, input: 'text', inputValue: u.password, showCancelButton: true });
+        if (newPass && newPass.trim() !== '') { u.password = newPass.trim(); save(); Swal.fire('Actualizado', '', 'success').then(() => manageUsers()); }
     }
 
     function deleteUser(id) {
-        Swal.fire({ 
-            title: '¿Eliminar este usuario?', 
-            text: 'Perderá el acceso.', 
-            icon: 'warning', 
-            showCancelButton: true, 
-            confirmButtonColor: '#d33', 
-            confirmButtonText: 'Sí, borrar' 
-        }).then((result) => {
-            if (result.isConfirmed) { 
-                STATE.users = STATE.users.filter(u => u.id !== id); 
-                save(); 
-                Swal.fire('Borrado', 'Usuario eliminado', 'success').then(() => manageUsers()); 
-            }
+        Swal.fire({ title: '¿Eliminar usuario?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' }).then((r) => { if (r.isConfirmed) { STATE.users = STATE.users.filter(u => u.id !== id); save(); Swal.fire('Borrado', '', 'success').then(() => manageUsers()); } });
+    }
+
+    /* ==========================================================================
+       4. UTILIDADES
+       ========================================================================== */
+    function formatExpDate(input) { let val = input.value.replace(/\D/g, ''); if (val.length >= 2) { val = val.slice(0, 2) + '/' + val.slice(2, 4); } input.value = val; }
+    function comprimirYConvertirABase64(file, maxDimension) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image(); img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); let width = img.width; let height = img.height;
+                    if (width > height) { if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; } } else { if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; } }
+                    canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                }; img.onerror = (e) => reject("Error foto: " + e);
+            }; reader.onerror = (e) => reject("Error archivo: " + e);
         });
     }
 
     /* ==========================================================================
-       5. UTILIDADES EXTRAS 
-       ========================================================================== */
-    function resizeImage(file) { 
-        return new Promise((resolve, reject) => { 
-            const reader = new FileReader(); 
-            reader.readAsDataURL(file); 
-            reader.onload = event => { 
-                const img = new Image(); 
-                img.src = event.target.result; 
-                img.onload = () => { 
-                    const canvas = document.createElement('canvas'); 
-                    const MAX = 300; 
-                    let w = img.width; 
-                    let h = img.height; 
-                    if (w > h) { 
-                        if (w > MAX) { h *= MAX / w; w = MAX; } 
-                    } else { 
-                        if (h > MAX) { w *= MAX / h; h = MAX; } 
-                    } 
-                    canvas.width = w; 
-                    canvas.height = h; 
-                    const ctx = canvas.getContext('2d'); 
-                    ctx.drawImage(img, 0, 0, w, h); 
-                    resolve(canvas.toDataURL('image/jpeg', 0.7)); 
-                }; 
-                img.onerror = error => reject(error); 
-            }; 
-            reader.onerror = error => reject(error); 
-        }); 
-    }
-
-    function formatExpDate(input) { 
-        let val = input.value.replace(/\D/g, ''); 
-        if (val.length >= 2) { 
-            val = val.slice(0, 2) + '/' + val.slice(2, 4); 
-        }
-        input.value = val; 
-    }
-
-    /* ==========================================================================
-       6. TERMINAL POS
+       5. TERMINAL POS (CALCULADORA A LA NUBE)
        ========================================================================== */
     function initCalcGrid() { 
-        const buttons = ['7','8','9','/','4','5','6','*','1','2','3','-','C','0','=','+'];
-        let html = '';
-        buttons.forEach(v => {
-            const isOp = (isNaN(v) && v !== '.' && v !== '0') ? 'op' : '';
-            html += `<div class="col-3"><button class="btn-calc calc-btn w-100 shadow-sm ${isOp}" onclick="calc('${v}')">${v}</button></div>`;
-        });
+        const buttons = ['7','8','9','/','4','5','6','*','1','2','3','-','C','0','=','+']; let html = '';
+        buttons.forEach(v => { const isOp = (isNaN(v) && v !== '.' && v !== '0') ? 'op' : ''; html += `<div class="col-3"><button class="btn-calc calc-btn w-100 shadow-sm ${isOp}" onclick="calc('${v}')">${v}</button></div>`; });
         document.getElementById('calc-grid').innerHTML = html;
     }
 
     function calc(v) { 
         const display = document.getElementById('calc-display'); 
-        if (v === 'C') { 
-            STATE.calcInput = '0'; 
-        } else if (v === '=') { 
-            try { 
-                STATE.calcInput = eval(STATE.calcInput).toString(); 
-            } catch(error) { 
-                STATE.calcInput = "Error"; 
-            } 
-        } else { 
-            if (STATE.calcInput === '0' || STATE.calcInput === 'Error') { 
-                STATE.calcInput = (v === '.') ? '0.' : v.toString(); 
-            } else { 
-                STATE.calcInput += v.toString(); 
-            } 
-        } 
+        if (v === 'C') { STATE.calcInput = '0'; } else if (v === '=') { try { STATE.calcInput = eval(STATE.calcInput).toString(); } catch(error) { STATE.calcInput = "Error"; } } else { if (STATE.calcInput === '0' || STATE.calcInput === 'Error') { STATE.calcInput = (v === '.') ? '0.' : v.toString(); } else { STATE.calcInput += v.toString(); } } 
         display.innerText = STATE.calcInput; 
     }
 
-   /* --- COBRO TERMINAL POS (CALCULADORA) -> A LA NUBE --- */
     window.addCalcToCash = async function() { 
         try { 
             const val = parseFloat(eval(STATE.calcInput)); 
-            if (isNaN(val) || val <= 0) return Swal.fire('Atención', 'El monto a cobrar debe ser mayor a 0.', 'warning');
+            if (isNaN(val) || val <= 0) return Swal.fire('Atención', 'Monto debe ser mayor a 0.', 'warning');
             
-            Swal.fire({ title: 'Registrando en la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            Swal.fire({ title: 'Registrando Venta...', html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>', allowOutsideClick: false, showConfirmButton: false });
 
             const ncf = "B02" + Math.floor(Math.random() * 90000000 + 10000000); 
-            const fechaStr = new Date().toLocaleDateString();
-            const horaStr = new Date().toLocaleTimeString();
+            const fechaStr = new Date().toLocaleDateString(); const horaStr = new Date().toLocaleTimeString();
 
-            // 1. Armamos el paquete para Firebase
-            const paqueteVenta = {
-                fields: {
-                    ncf: { stringValue: ncf },
-                    cliente: { stringValue: "VENTA DIRECTA CAJA" },
-                    total: { stringValue: val.toFixed(2) },
-                    metodo: { stringValue: "Efectivo" },
-                    fecha: { stringValue: fechaStr },
-                    hora: { stringValue: horaStr }
-                }
-            };
-
+            const paqueteVenta = { fields: { ncf: { stringValue: ncf }, cliente: { stringValue: "VENTA CAJA RÁPIDA" }, total: { stringValue: val.toFixed(2) }, metodo: { stringValue: "Efectivo" }, fecha: { stringValue: fechaStr }, hora: { stringValue: horaStr } } };
             const urlVenta = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/venta?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
             
-            // 2. Enviamos el cobro a Google
-            const respuesta = await fetch(urlVenta, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(paqueteVenta)
-            });
+            const respuesta = await fetch(urlVenta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(paqueteVenta) });
 
             if (respuesta.ok) {
-                // 3. Si Google guardó el dinero, actualizamos la pantalla
-                STATE.caja += val; 
-                STATE.calcInput = '0'; 
-                document.getElementById('calc-display').innerText = '0'; 
-                
-                STATE.sales.push({ 
-                    ncf: ncf, 
-                    tipoFactura: 'B02', 
-                    client: "VENTA DIRECTA CAJA", 
-                    total: val.toFixed(2), 
-                    method: "Efectivo", 
-                    time: horaStr, 
-                    date: fechaStr, 
-                    cart: [] 
-                }); 
-                
-                save(); 
-                window.renderAdmin(); 
-                
-                Swal.fire({ 
-                    icon: 'success', title: 'Cobrado y Guardado ☁️', toast: true, 
-                    position: 'top-end', showConfirmButton: false, timer: 2000 
-                }); 
-            } else {
-                throw new Error("Google rechazó la venta.");
-            }
-        } catch (e) { 
-            Swal.fire('Error', 'No se pudo guardar: ' + e.message, 'error'); 
-        } 
+                STATE.caja += val; STATE.calcInput = '0'; document.getElementById('calc-display').innerText = '0'; 
+                STATE.sales.push({ ncf: ncf, tipoFactura: 'B02', client: "VENTA CAJA RÁPIDA", total: val.toFixed(2), method: "Efectivo", time: horaStr, date: fechaStr, cart: [] }); 
+                save(); window.renderAdmin(); 
+                Swal.fire({ icon: 'success', title: 'Cobrado y Guardado ☁️', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }); 
+            } else { throw new Error("Google rechazó la venta."); }
+        } catch (e) { Swal.fire('Error', 'No se guardó: ' + e.message, 'error'); } 
     };
+
     /* ==========================================================================
-       7. INVENTARIO MAESTRO
+       6. INVENTARIO MAESTRO
        ========================================================================== */
-    function filterInventory() {
+    window.filterInventory = function() {
         const query = document.getElementById('inv-search') ? document.getElementById('inv-search').value.toLowerCase() : ''; 
         const category = document.getElementById('cat-filter') ? document.getElementById('cat-filter').value : 'all'; 
-        const display = document.getElementById('shelf-display'); 
+        const display = document.getElementById('shelf-display'); if (!display) return; display.innerHTML = ""; 
         
-        if (!display) return; 
-        display.innerHTML = ""; 
-        
-        const filtered = STATE.inventory.filter(p => { 
-            const matchTxt = (p.name || '').toLowerCase().includes(query) || (p.serial || '').toLowerCase().includes(query); 
-            return matchTxt && ((category === "all") || (p.cat === category)); 
-        });
-        
-        if (filtered.length === 0) { 
-            display.innerHTML = `<div class="text-center p-5 text-muted"><i class="fas fa-box-open fs-1 mb-3"></i><h5>No se encontraron productos</h5></div>`; 
-            return; 
-        }
+        const filtered = STATE.inventory.filter(p => { const matchTxt = (p.name || '').toLowerCase().includes(query) || (p.serial || '').toLowerCase().includes(query); return matchTxt && ((category === "all") || (p.cat === category)); });
+        if (filtered.length === 0) { display.innerHTML = `<div class="text-center p-5 text-muted"><i class="fas fa-box-open fs-1 mb-3"></i><h5>Sin productos</h5></div>`; return; }
 
         const categoriasPresentes = [...new Set(filtered.map(p => p.cat || 'General'))];
-        
         categoriasPresentes.forEach(cat => {
             let html = `<div class="col-12"><h4 class="shelf-category-title"><i class="fas fa-tags me-2"></i>Pasillo de ${cat.toUpperCase()}</h4></div>`;
             const prodsDeCategoria = filtered.filter(p => (p.cat || 'General') === cat);
-            
             prodsDeCategoria.forEach(p => {
                 let expHtml = ''; 
                 if (p.expDate) { 
                     const hoyStr = new Date().toISOString().split("T")[0];
-                    if (p.expDate < hoyStr) { 
-                        expHtml = `<span class="badge bg-danger ms-1">VENCIDO</span>`; 
-                    } else { 
-                        const fechaFormateada = new Date(p.expDate + 'T12:00:00').toLocaleDateString();
-                        expHtml = `<span class="text-muted ms-1" style="font-size:10px;">Vence: ${fechaFormateada}</span>`; 
-                    } 
+                    if (p.expDate < hoyStr) expHtml = `<span class="badge bg-danger ms-1">VENCIDO</span>`; else expHtml = `<span class="text-muted ms-1" style="font-size:10px;">Vence: ${new Date(p.expDate + 'T12:00:00').toLocaleDateString()}</span>`; 
                 }
-                
-                const limit = p.maxStock || 50; 
-                const pct = Math.min((p.stock / limit) * 100, 100);
-                let colorBar = 'bg-success'; 
-                if (pct < 20) colorBar = 'bg-danger'; 
-                else if (pct > 90) colorBar = 'bg-warning';
+                const limit = p.maxStock || 50; const pct = Math.min((p.stock / limit) * 100, 100);
+                let colorBar = 'bg-success'; if (pct < 20) colorBar = 'bg-danger'; else if (pct > 90) colorBar = 'bg-warning';
 
-                html += `
-                <div class="col-md-4 animate__animated animate__fadeIn mb-3">
-                    <div class="shelf-item shadow-sm" onclick="openQuickEdit(${p.id})">
-                        <img src="${p.img || 'https://via.placeholder.com/150'}">
-                        <h6 class="fw-bold mb-1 mt-2" style="font-size:13px">${p.name || 'N/A'}</h6>
-                        <small class="text-muted d-block mb-1" style="font-size:11px;">S/N: ${p.serial || 'N/A'}</small>
-                        <small class="text-secondary d-block mb-2" style="font-size:10px;">
-                            Prov: ${p.supplier || 'N/A'} <br> 
-                            Rep: ${p.supplierContact || 'N/A'} | SKU: ${p.supplierCode || 'N/A'} <br> 
-                            ${expHtml}
-                        </small>
-                        <div class="progress mb-2" style="height: 6px;">
-                            <div class="progress-bar ${colorBar}" style="width: ${pct}%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
-                            <span class="fw-bold text-pink fs-6">RD$ ${p.price || 0}</span>
-                            <span class="badge ${p.stock < 5 ? 'bg-danger' : 'bg-dark'}">${p.stock} / ${limit}</span>
-                        </div>
-                    </div>
-                </div>`;
-            });
-            display.innerHTML += html;
+                html += `<div class="col-md-4 animate__animated animate__fadeIn mb-3"><div class="shelf-item shadow-sm" onclick="openQuickEdit(${p.id})"><img src="${p.img || 'https://via.placeholder.com/150'}"><h6 class="fw-bold mb-1 mt-2" style="font-size:13px">${p.name || 'N/A'}</h6><small class="text-muted d-block mb-1" style="font-size:11px;">S/N: ${p.serial || 'N/A'}</small><div class="progress mb-2" style="height: 6px;"><div class="progress-bar ${colorBar}" style="width: ${pct}%"></div></div><div class="d-flex justify-content-between align-items-center pt-2 border-top"><span class="fw-bold text-pink fs-6">RD$ ${p.price || 0}</span><span class="badge ${p.stock < 5 ? 'bg-danger' : 'bg-dark'}">${p.stock} / ${limit}</span></div></div></div>`;
+            }); display.innerHTML += html;
         });
     }
 
- async function addProduct() {
+    window.addProduct = async function() {
         const { value: formValues } = await Swal.fire({
             title: '<i class="fas fa-boxes text-pink me-2"></i>NUEVO PRODUCTO',
-            html: `
-              <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-                  <h6 class="fw-bold text-pink border-bottom pb-1">1. Datos Principales</h6>
-                  <div class="row g-2 mb-2">
-                      <div class="col-5">
-                          <label class="small fw-bold">Serial Internal <span class="text-danger">*</span></label>
-                          <input id="np-serial" class="form-control form-control-sm" placeholder="Ej: KER-101">
-                      </div>
-                      <div class="col-7">
-                          <label class="small fw-bold">Nombre del Producto <span class="text-danger">*</span></label>
-                          <input id="np-name" class="form-control form-control-sm" placeholder="Ej: Shampoo Kérastase">
-                      </div>
-                  </div>
-                  <div class="row g-2 mb-2">
-                      <div class="col-4">
-                          <label class="small fw-bold">Precio (RD$) <span class="text-danger">*</span></label>
-                          <input id="np-price" type="number" class="form-control form-control-sm" placeholder="0">
-                      </div>
-                      <div class="col-4">
-                          <label class="small fw-bold">Stock Inicial:</label>
-                          <input id="np-stock" type="number" class="form-control form-control-sm" value="0">
-                      </div>
-                      <div class="col-4">
-                          <label class="small fw-bold text-danger">Stock MÁX <span class="text-danger">*</span></label>
-                          <input id="np-max" type="number" class="form-control form-control-sm" value="50">
-                      </div>
-                  </div>
-                  <div class="mb-2">
-                      <label class="small fw-bold">Categoría:</label>
-                      <select id="np-cat" class="form-select form-select-sm">
-                          <option>Pelo</option><option>Uñas</option><option>Tintes</option><option>Piel</option><option>Perfumes</option><option>General</option>
-                      </select>
-                  </div>
-                  <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">2. Datos de Proveedor</h6>
-                  <div class="row g-2 mb-2">
-                      <div class="col-6">
-                          <label class="small fw-bold">Empresa:</label>
-                          <input id="np-supplier" type="text" class="form-control form-control-sm">
-                      </div>
-                      <div class="col-6">
-                          <label class="small fw-bold">Cód. SKU Fábrica:</label>
-                          <input id="np-supp-code" type="text" class="form-control form-control-sm">
-                      </div>
-                  </div>
-                  <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">3. Fotografía Real</h6>
-                  <p class="text-muted small mb-2"><i class="fas fa-info-circle text-pink"></i> La imagen se comprimirá automáticamente para no saturar tu teléfono.</p>
-                  <input type="file" id="np-img-file" class="form-control form-control-sm mb-1" accept="image/*">
-              </div>`,
-            showCancelButton: true, 
-            confirmButtonText: 'Subir a la Nube ☁️', 
-            width: '550px',
+            html: `<div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;"><h6 class="fw-bold text-pink border-bottom pb-1">1. Datos Principales</h6><div class="row g-2 mb-2"><div class="col-5"><label class="small fw-bold">Serial <span class="text-danger">*</span></label><input id="np-serial" class="form-control form-control-sm" placeholder="Ej: KER-101"></div><div class="col-7"><label class="small fw-bold">Nombre <span class="text-danger">*</span></label><input id="np-name" class="form-control form-control-sm" placeholder="Ej: Shampoo"></div></div><div class="row g-2 mb-2"><div class="col-4"><label class="small fw-bold">Precio <span class="text-danger">*</span></label><input id="np-price" type="number" class="form-control form-control-sm" placeholder="0"></div><div class="col-4"><label class="small fw-bold">Stock:</label><input id="np-stock" type="number" class="form-control form-control-sm" value="0"></div><div class="col-4"><label class="small fw-bold text-danger">MÁX <span class="text-danger">*</span></label><input id="np-max" type="number" class="form-control form-control-sm" value="50"></div></div><div class="mb-2"><label class="small fw-bold">Categoría:</label><select id="np-cat" class="form-select form-select-sm"><option>Pelo</option><option>Uñas</option><option>Tintes</option><option>Piel</option><option>Perfumes</option><option>General</option></select></div><h6 class="fw-bold text-pink border-bottom pb-1 mt-4">2. Foto Real</h6><input type="file" id="np-img-file" class="form-control form-control-sm mb-1" accept="image/*"></div>`, 
+            showCancelButton: true, confirmButtonText: 'Subir a la Nube ☁️', width: '550px',
             preConfirm: async () => {
-                // Obtenemos los campos obligatorios
-                const serial = document.getElementById('np-serial').value.trim(); 
-                const name = document.getElementById('np-name').value.trim(); 
-                const price = parseFloat(document.getElementById('np-price').value); 
-                const maxStock = parseInt(document.getElementById('np-max').value);
-                const stock = parseInt(document.getElementById('np-stock').value) || 0; 
-                const file = document.getElementById('np-img-file').files[0];
-                
-                // Validación básica
-                if (!name || isNaN(price) || !serial || isNaN(maxStock)) { 
-                    Swal.showValidationMessage("Por favor llena los campos marcados con *"); 
-                    return false; 
-                }
-                
-                // Imagen por defecto (rosa de prueba) por si el usuario no sube nada
+                const serial = document.getElementById('np-serial').value.trim(); const name = document.getElementById('np-name').value.trim(); const price = parseFloat(document.getElementById('np-price').value); const maxStock = parseInt(document.getElementById('np-max').value); const stock = parseInt(document.getElementById('np-stock').value) || 0; const file = document.getElementById('np-img-file').files[0];
+                if (!name || isNaN(price) || !serial || isNaN(maxStock)) { Swal.showValidationMessage("Llene los campos con *"); return false; }
                 let imgBase64 = 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'; 
-                
-                // --- TRUCO MAESTRO DE FOTOS ---
-                if (file) { 
-                    try { 
-                        // Muestra un mensajito de "procesando" dentro del mismo cartel
-                        Swal.showLoading(); 
-                        
-                        // OBLIGAMOS a esperar (await) a que la foto se comprima y convierta en texto
-                        // Usaremos una definición de 400px para que se vea genial y pese poco
-                        imgBase64 = await comprimirYConvertirABase64(file, 400); 
-                        
-                        console.log("¡Foto convertida a texto exitosamente!");
-                    } catch(e) {
-                        console.error("Error procesando imagen:", e);
-                        Swal.showValidationMessage("Hubo un error con la foto. Intenta con otra.");
-                        return false;
-                    } 
-                }
-                
-                // Retornamos los datos limpios para Firebase
-                return { 
-                    serial, name, price, stock, maxStock, 
-                    cat: document.getElementById('np-cat').value, 
-                    supplier: document.getElementById('np-supplier').value.trim(), 
-                    img: imgBase64 // ¡Aquí ya viaja la foto real en texto o la rosa de prueba!
-                };
+                if (file) { try { Swal.showLoading(); imgBase64 = await comprimirYConvertirABase64(file, 400); } catch(e) { Swal.showValidationMessage("Error foto"); return false; } }
+                return { serial, name, price, stock, maxStock, cat: document.getElementById('np-cat').value, img: imgBase64 };
             }
         });
-        
-        // Si el usuario le dio a "Subir a la Nube" y las validaciones pasaron
         if (formValues) { 
-            // Mostramos el spinner de "Subiendo a Google..."
-            Swal.fire({
-                title: 'Conectando con Google Cloud...',
-                html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i><br><small class="text-muted">Esto puede tomar unos segundos si la foto es grande.</small>',
-                allowOutsideClick: false,
-                showConfirmButton: false
-            });
-
+            Swal.fire({ title: 'Subiendo a Google Cloud...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try {
-                // Preparamos el paquete de datos en el idioma exacto de Firebase
-                const datosFirebase = {
-                    fields: {
-                        nombre: { stringValue: formValues.name },
-                        precio: { stringValue: formValues.price.toString() },
-                        cantidad: { stringValue: formValues.stock.toString() },
-                        maxStock: { stringValue: formValues.maxStock.toString() },
-                        categoria: { stringValue: formValues.cat },
-                        serial: { stringValue: formValues.serial },
-                        proveedor: { stringValue: formValues.supplier },
-                        // Guardamos la foto (el texto larguísimo Base64) en la nube
-                        img: { stringValue: formValues.img } 
-                    }
-                };
-
-                // Enviamos el cohete POST a Firebase con tu llave
+                const paquete = { fields: { nombre: { stringValue: formValues.name }, precio: { stringValue: formValues.price.toString() }, cantidad: { stringValue: formValues.stock.toString() }, maxStock: { stringValue: formValues.maxStock.toString() }, categoria: { stringValue: formValues.cat }, serial: { stringValue: formValues.serial }, img: { stringValue: formValues.img } } };
                 const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-                
-                const respuesta = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datosFirebase)
-                });
-
-                if (respuesta.ok) {
-                    // Si aterrizó con éxito, Google nos devuelve el ID raro que le puso
-                    const data = await respuesta.json();
-                    const rutaId = data.name.split('/');
-                    const idRealFirebase = rutaId[rutaId.length - 1];
-
-                    // Agregamos el producto a tu pantalla inmediatamente para no esperar a recargar
-                    STATE.inventory.push({ 
-                        id: 5000 + STATE.inventory.length + 1, // ID numérico disfrazado
-                        firebaseId: idRealFirebase, // ID real de Google oculto
-                        ...formValues 
-                    }); 
-                    
-                    save(); // Guarda en tu localstorage por respaldo
-                    filterInventory(); // Refresca panel admin
-                    filterShop('all'); // Refresca la boutique
-                    
-                    Swal.fire('¡Magia! ☁️', 'El producto y su foto real están a salvo en la nube.', 'success'); 
-                } else {
-                    const errorJson = await respuesta.json();
-                    console.error("Firebase rechazó el paquete:", errorJson);
-                    throw new Error("Google rechazó los datos. Quizás la foto quedó muy pesada.");
-                }
-            } catch(e) {
-                Swal.fire('Error de Conexión', 'No pudimos subir el producto: ' + e.message, 'error');
-            }
+                const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(paquete) });
+                if (res.ok) { Swal.fire('¡Éxito!', 'Producto en la nube.', 'success'); window.cargarTodoDesdeNube(); } else throw new Error();
+            } catch(e) { Swal.fire('Error', 'Fallo de conexión.', 'error'); }
         }
     }
 
-    // --- FUNCIÓN AUXILIAR ROCK-SÓLIDA PARA COMPRIMIR FOTOS (Pégala por ahí cerca) ---
-    function comprimirYConvertirABase64(file, maxDimension) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file); // Lee archivo
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    // Usamos Canvas para redimensionar
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    // Calculamos nuevas dimensiones manteniendo proporción
-                    if (width > height) {
-                        if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
-                    } else {
-                        if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height); // Dibuja la foto pequeña
-
-                    // Convierte el Canvas a texto JPEG comprimido al 70% (calidad/peso perfecto)
-                    const base64Comprimido = canvas.toDataURL('image/jpeg', 0.7);
-                    resolve(base64Comprimido);
-                };
-                img.onerror = (e) => reject("Error cargando imagen en memoria: " + e);
-            };
-            reader.onerror = (e) => reject("Error leyendo el archivo: " + e);
-        });
-    }
-    async function openQuickEdit(id) {
-        const prod = STATE.inventory.find(p => p.id === id); 
-        if (!prod) return;
-
-        const { value: formValues } = await Swal.fire({
+    window.openQuickEdit = async function(id) {
+        const prod = STATE.inventory.find(p => p.id === id); if (!prod) return;
+        Swal.fire({
             title: 'EDICIÓN Y CONTROL',
-            html: `
-              <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-                  <div class="text-center mb-3">
-                      <img src="${prod.img}" height="80" class="border border-pink rounded shadow-sm" onerror="this.src='https://via.placeholder.com/150'">
-                  </div>
-                  <div class="bg-light p-3 rounded border mb-4">
-                      <h6 class="fw-bold text-dark text-center mb-3">Stock Físico: <span class="text-pink fs-4">${prod.stock}</span> / ${prod.maxStock || 50} MAX</h6>
-                      <div class="row g-2">
-                          <div class="col-6">
-                              <label class="small fw-bold text-success"><i class="fas fa-plus"></i> Nueva Entrada:</label>
-                              <input type="number" id="e-qty" class="form-control form-control-sm border-success" value="0">
-                          </div>
-                          <div class="col-6">
-                              <label class="small fw-bold text-danger"><i class="fas fa-minus"></i> Merma/Vencido:</label>
-                              <input type="number" id="e-minus" class="form-control form-control-sm border-danger" value="0">
-                          </div>
-                      </div>
-                  </div>
-                  <h6 class="fw-bold text-pink border-bottom pb-1">Información Actual</h6>
-                  <p class="small mb-1"><b>Nombre:</b> ${prod.name}</p>
-                  <p class="small mb-1"><b>Serial:</b> ${prod.serial}</p>
-                  
-                  <div class="mt-4 pt-3 border-top text-center">
-                     <button id="btn-delete-real" class="btn btn-danger w-100 fw-bold rounded-pill">
-                         <i class="fas fa-trash-alt me-2"></i>ELIMINAR DE LA NUBE ☁️
-                     </button>
-                     <p class="text-muted mt-2" style="font-size:10px;">Esta acción es irreversible en Firebase.</p>
-                  </div>
-              </div>`,
-            showCancelButton: true, 
-            confirmButtonText: 'Cerrar Ventana', 
-            confirmButtonColor: '#333', 
-            width: '500px',
+            html: `<div class="text-center mb-3"><img src="${prod.img}" height="80" class="border border-pink rounded shadow-sm"></div><div class="bg-light p-3 rounded border mb-4"><h6 class="fw-bold text-dark text-center mb-3">Stock Físico: <span class="text-pink fs-4">${prod.stock}</span> / ${prod.maxStock || 50} MAX</h6></div><p class="small mb-1"><b>Nombre:</b> ${prod.name}</p><div class="mt-4 pt-3 border-top text-center"><button id="btn-delete-real" class="btn btn-danger w-100 fw-bold rounded-pill"><i class="fas fa-trash-alt me-2"></i>ELIMINAR DE LA NUBE ☁️</button></div>`, 
+            showCancelButton: true, confirmButtonText: 'Cerrar', width: '400px',
             didOpen: () => {
-                // --- LÓGICA DE ELIMINACIÓN REAL EN GOOGLE ---
                 document.getElementById('btn-delete-real').addEventListener('click', () => {
-                    Swal.fire({ 
-                        title: '¿Borrar de la Nube?', 
-                        text: `¿Estás seguro de eliminar "${prod.name}" permanentemente de Google Firebase?`, 
-                        icon: 'warning', 
-                        showCancelButton: true, 
-                        confirmButtonColor: '#d33', 
-                        confirmButtonText: 'Sí, borrar ahora' 
-                    }).then(async (res) => {
-                        if (res.isConfirmed) { 
-                            // Spinner de borrado
-                            Swal.fire({
-                                title: 'Eliminando de Google Cloud...',
-                                allowOutsideClick: false,
-                                didOpen: () => { Swal.showLoading(); }
-                            });
-
+                    Swal.fire({ title: '¿Borrar?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Borrar' }).then(async (r) => {
+                        if (r.isConfirmed) { 
+                            Swal.fire({ title: 'Borrando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                             try {
-                                const fId = prod.firebaseId; 
-                                if (!fId) throw new Error("Este producto no tiene ID de nube.");
-
-                                // URL de borrado directo
-                                const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-                                
-                                const respuesta = await fetch(url, { method: 'DELETE' });
-
-                                if (respuesta.ok) {
-                                    // Quitamos del sistema local
-                                    STATE.inventory = STATE.inventory.filter(p => p.id !== id); 
-                                    save(); 
-                                    filterInventory(); 
-                                    filterShop('all');
-                                    Swal.fire('¡Fuera! 🗑️', 'Producto eliminado de la base de datos.', 'success'); 
-                                } else {
-                                    throw new Error("Firebase no permitió el borrado.");
-                                }
-                            } catch (err) {
-                                Swal.fire('Error', 'No se pudo eliminar: ' + err.message, 'error');
-                            }
+                                if (!prod.firebaseId) throw new Error();
+                                await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${prod.firebaseId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' });
+                                STATE.inventory = STATE.inventory.filter(p => p.id !== id); save(); window.filterInventory(); window.filterShop('all'); Swal.fire('¡Borrado!', '', 'success');
+                            } catch(err) { Swal.fire('Error', 'Fallo borrar.', 'error'); }
                         }
                     });
                 });
@@ -1719,1465 +1119,275 @@
         });
     }
 
-   /* ==========================================================================
-       8. ADMINISTRACIÓN, RRHH Y NÓMINA (SISTEMA DE COMISIONES INTEGRADO)
+    /* ==========================================================================
+       7. ADMINISTRACIÓN Y STAFF (CORREGIDO IDs FIREBASE)
        ========================================================================== */
-    function renderAdmin() {
-        const hoyObj = new Date(); 
-        const hoyStrLocal = hoyObj.toLocaleDateString(); 
-        const hoyStrISO = hoyObj.toISOString().split("T")[0]; 
-        
-        let totalVentasHoy = 0; 
-        STATE.sales.forEach(s => { 
-            if (s.date === hoyStrLocal) { totalVentasHoy++; } 
-        });
-        
-        document.getElementById('adm-caja').innerText = `RD$ ${STATE.caja.toLocaleString(undefined, {minimumFractionDigits: 2})}`; 
-        document.getElementById('adm-sales-count').innerText = totalVentasHoy;
-        
-        let onlineCount = 0; 
-        STATE.staff.forEach(s => { 
-            if (s.status === 'Online') { onlineCount++; } 
-        }); 
-        document.getElementById('adm-staff-count').innerText = onlineCount;
+    window.renderAdmin = function() {
+        const hoyObj = new Date(); const hoyStrLocal = hoyObj.toLocaleDateString(); const hoyStrISO = hoyObj.toISOString().split("T")[0]; 
+        let totalVentasHoy = 0; STATE.sales.forEach(s => { if (s.date === hoyStrLocal) { totalVentasHoy++; } });
+        if(document.getElementById('adm-caja')) document.getElementById('adm-caja').innerText = `RD$ ${STATE.caja.toLocaleString(undefined, {minimumFractionDigits: 2})}`; 
+        if(document.getElementById('adm-sales-count')) document.getElementById('adm-sales-count').innerText = totalVentasHoy;
+        let onlineCount = 0; STATE.staff.forEach(s => { if (s.status === 'Online' || s.status === 'Activo') { onlineCount++; } }); 
+        if(document.getElementById('adm-staff-count')) document.getElementById('adm-staff-count').innerText = onlineCount;
         
         let htmlStaff = '';
-        STATE.staff.forEach((s, i) => { 
-            const timeInfo = s.clockInTime 
-                ? `<small class="text-success fw-bold d-block"><i class="fas fa-clock me-1"></i>In: ${s.clockInTime}</small>` 
-                : `<small class="text-muted d-block"><i class="fas fa-bed me-1"></i>Inactivo</small>`; 
-            
-            let citasHoy = 0; 
-            STATE.appts.forEach(a => { 
-                if(a.stylist === s.name && a.date === hoyStrISO) { citasHoy++; } 
-            });
-            
-            let ventasStaffHoy = 0; 
-            STATE.sales.forEach(venta => { 
-                if (venta.client === `Servicio Salon - ${s.name}` && venta.date === hoyStrLocal) { 
-                    ventasStaffHoy += parseFloat(venta.total); 
-                } 
-            });
+        STATE.staff.forEach(s => { 
+            const estaActivo = (s.status === 'Online' || s.status === 'Activo');
+            let citasHoy = 0; STATE.appts.forEach(a => { if(a.stylist === s.name && a.date === hoyStrISO) { citasHoy++; } });
+            let ventasStaffHoy = 0; STATE.sales.forEach(venta => { if (venta.client.includes(s.name) && venta.date === hoyStrLocal) { ventasStaffHoy += parseFloat(venta.total); } });
   
-            // NOTA: Se agregaron comillas simples a los IDs ('${s.id}') para que Firebase no rompa el código
             htmlStaff += `
-            <div class="staff-card-vip border mb-2 shadow-sm">
-                <div class="d-flex align-items-center">
-                    <img src="${s.img || 'https://via.placeholder.com/150'}" class="staff-img">
-                    <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-0 d-flex align-items-center">
-                            <span class="status-dot ${s.status === 'Online' ? 'online' : 'offline'}"></span> ${s.name}
-                        </h6>
-                        ${timeInfo}
-                    </div>
+            <div class="staff-card-vip border mb-2 shadow-sm p-3 bg-white rounded-4">
+                <div class="d-flex align-items-center mb-2">
+                    <img src="${s.img || 'https://via.placeholder.com/150'}" class="staff-img" style="width:50px; height:50px; border-radius:12px; object-fit:cover; margin-right:12px; border:2px solid ${estaActivo ? '#FF1493':'#ccc'}">
+                    <div class="flex-grow-1"><h6 class="fw-bold mb-0"><span class="status-dot ${estaActivo ? 'online' : 'offline'}"></span> ${s.name}</h6><small class="${estaActivo ? 'text-success':'text-muted'}">${estaActivo ? 'Online':'Offline'}</small></div>
                 </div>
-                <div class="row g-1 mt-2 text-center bg-light rounded py-1 border">
-                    <div class="col-6 border-end">
-                        <small class="fw-bold text-dark" style="font-size:10px">CITAS HOY<br><span class="fs-6">${citasHoy}</span></small>
-                    </div>
-                    <div class="col-6">
-                        <small class="fw-bold text-success" style="font-size:10px">VENTAS HOY<br>RD$ ${ventasStaffHoy.toLocaleString()}</small>
-                    </div>
-                </div>
-                <div class="mt-2 d-flex gap-1 justify-content-center">
-                    <button class="btn ${s.status === 'Online' ? 'btn-dark' : 'btn-glam'} btn-sm rounded-pill fw-bold w-50" style="font-size:10px" onclick="staffClockIn(${i})">
-                        ${s.status === 'Online' ? 'SALIDA' : 'ENTRADA'}
-                    </button>
-                    <button class="btn btn-outline-dark btn-sm rounded-pill w-50" style="font-size:10px" onclick="addManualStaffSale('${s.id}')">
-                        <i class="fas fa-plus"></i> Venta
-                    </button>
-                    <button class="btn btn-danger btn-sm rounded-pill w-50" style="font-size:10px" onclick="deleteStaff('${s.id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button class="btn ${estaActivo ? 'btn-dark' : 'btn-glam'} btn-sm rounded-pill fw-bold flex-grow-1" style="font-size:10px; padding:8px;" onclick="window.staffClockIn('${s.id}')">${estaActivo ? 'SALIDA' : 'ENTRADA'}</button>
+                    <button class="btn btn-outline-dark btn-sm rounded-pill flex-grow-1" style="font-size:10px; padding:8px;" onclick="window.addManualStaffSale('${s.id}')"><i class="fas fa-plus"></i> Venta</button>
+                    <button class="btn btn-danger btn-sm rounded-circle" onclick="window.deleteStaff('${s.id}')"><i class="fas fa-trash"></i></button>
                 </div>
             </div>`; 
         });
-        document.getElementById('adm-staff-list').innerHTML = htmlStaff;
+        if(document.getElementById('adm-staff-list')) document.getElementById('adm-staff-list').innerHTML = htmlStaff;
   
         const citasDeHoy = STATE.appts.filter(a => a.date === hoyStrISO);
-        if (citasDeHoy.length === 0) {
-            document.getElementById('adm-agenda-list').innerHTML = `
-                <div class="text-center p-4 text-muted">
-                    <i class="fas fa-calendar-times fs-3 mb-2 opacity-50"></i><br>Libre hoy
-                </div>`;
-        } else {
-            let htmlCitas = '';
-            citasDeHoy.forEach(a => {
-                htmlCitas += `
-                <div class="p-3 mb-2 bg-light border-start border-pink border-4 rounded-3 d-flex justify-content-between align-items-center shadow-sm">
-                    <div>
-                        <h6 class="fw-bold text-pink mb-0 m-0"><i class="fas fa-clock me-1"></i>${a.time}</h6>
-                        <small class="fw-bold">${a.stylist}</small><br>
-                        <small class="text-muted" style="font-size:10px">TKT: ${a.ticket}</small>
-                    </div>
-                    <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteAppt('${a.id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>`;
-            });
-            document.getElementById('adm-agenda-list').innerHTML = htmlCitas;
+        const agendaContainer = document.getElementById('adm-agenda-list');
+        if(agendaContainer) {
+            if (citasDeHoy.length === 0) { agendaContainer.innerHTML = `<div class="text-center p-4 text-muted"><i class="fas fa-calendar-times fs-3 mb-2 opacity-50"></i><br>Libre hoy</div>`; } else {
+                let htmlCitas = ''; citasDeHoy.forEach(a => { htmlCitas += `<div class="p-3 mb-2 bg-light border-start border-pink border-4 rounded-3 d-flex justify-content-between align-items-center shadow-sm"><div><h6 class="fw-bold text-pink mb-0 m-0"><i class="fas fa-clock me-1"></i>${a.time}</h6><small class="fw-bold">${a.stylist}</small><br><small class="text-muted" style="font-size:10px">TKT: ${a.ticket}</small></div><button class="btn btn-sm btn-outline-danger rounded-circle" onclick="window.deleteAppt('${a.id}')"><i class="fas fa-trash"></i></button></div>`; });
+                agendaContainer.innerHTML = htmlCitas;
+            }
         }
-        renderChart();
+        if (typeof renderChart === "function") renderChart();
     }
-  
-    /* ==========================================================================
-       FUNCIÓN DE ENTRADA/SALIDA (CLOCK IN) SINCRONIZADA CON FIREBASE
-       ========================================================================== */
-    window.staffClockIn = async function(index) {
-        const employee = STATE.staff[index];
-        if(!employee) return;
 
-        Swal.fire({ title: 'Conectando con la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-
+    window.staffClockIn = async function(staffId) {
+        const employee = STATE.staff.find(s => s.id === String(staffId)); if(!employee) return;
+        Swal.fire({ title: 'Conectando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
         try {
             const nuevoEstado = (employee.status === 'Offline') ? 'Online' : 'Offline';
-
-            const updateData = {
-                fields: { status: { stringValue: nuevoEstado } }
-            };
-
             const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff/${employee.id}?updateMask.fieldPaths=status&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+            const respuesta = await fetch(url, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { status: { stringValue: nuevoEstado } } }) });
+            if (respuesta.ok) { employee.status = nuevoEstado; save(); window.renderAdmin(); window.renderClient(); Swal.close(); } else throw new Error();
+        } catch (error) { Swal.fire('Error', 'Fallo red.', 'error'); }
+    };
 
-            const respuesta = await fetch(url, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updateData)
-            });
+    window.addManualStaffSale = function(firebaseId) {
+        const staff = STATE.staff.find(s => s.id === String(firebaseId)); if(!staff) return;
+        Swal.fire({ title: `Venta: ${staff.name}`, input: 'number', showCancelButton: true, confirmButtonColor: '#FF1493' }).then((r) => { 
+            if (r.isConfirmed && r.value > 0) { STATE.caja += parseFloat(r.value); STATE.sales.push({ ncf: "MAN-" + Math.floor(Math.random() * 900000), tipoFactura: 'B02', client: `Servicio - ${staff.name}`, total: parseFloat(r.value).toFixed(2), method: "Efectivo", time: new Date().toLocaleTimeString(), date: new Date().toLocaleDateString(), pagada: false, cart: [] }); save(); window.renderAdmin(); Swal.fire('Éxito', '', 'success'); } 
+        });
+    };
 
-            if (respuesta.ok) {
-                employee.status = nuevoEstado;
-                employee.clockInTime = (nuevoEstado === 'Online') ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
-                
-                save();
-                renderAdmin();
-                renderClient(); // Refresca la lista pública para que el cliente pueda agendar
-
-                Swal.fire({
-                    icon: 'success',
-                    title: nuevoEstado === 'Online' ? '¡Entrada Registrada!' : '¡Salida Registrada!',
-                    text: `${employee.name} está ahora ${nuevoEstado === 'Online' ? 'disponible' : 'inactivo'}.`,
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            } else {
-                throw new Error("Error conectando con Google Cloud.");
-            }
-        } catch (error) {
-            console.error(error);
-            Swal.fire('Error', 'No se pudo actualizar el estado en la nube.', 'error');
+    window.deleteStaff = async function(id) {
+        if((await Swal.fire({ title: '¿Borrar Personal?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, eliminar' })).isConfirmed) { 
+            Swal.fire({ title: 'Borrando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            try { await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff/${id}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' }); STATE.staff = STATE.staff.filter(s => s.id !== String(id)); save(); window.renderAdmin(); window.renderClient(); Swal.fire('Eliminado', '', 'success'); } catch(e) {}
         }
     };
 
-    function addManualStaffSale(id) {
-        // Encontramos al empleado usando el ID de texto de Firebase
-        const staff = STATE.staff.find(s => s.id === String(id)); 
-        if(!staff) return;
-        
-        Swal.fire({ 
-            title: `Venta Manual: ${staff.name}`, 
-            input: 'number', 
-            inputPlaceholder: 'Monto del servicio (RD$)', 
-            showCancelButton: true, 
-            inputValidator: (v) => { 
-                if (!v || v <= 0) return 'Monto inválido'; 
-            } 
-        }).then((r) => { 
-            if (r.isConfirmed) { 
-                const monto = parseFloat(r.value); 
-                STATE.caja += monto; 
-                
-                STATE.sales.push({ 
-                    ncf: "MAN-" + Math.floor(Math.random() * 900000), 
-                    tipoFactura: 'B02', 
-                    client: `Servicio Salon - ${staff.name}`, 
-                    total: monto.toFixed(2), 
-                    method: "Efectivo", 
-                    time: new Date().toLocaleTimeString(), 
-                    date: new Date().toLocaleDateString(), 
-                    pagada: false, 
-                    cart: [] 
-                }); 
-                
-                save(); 
-                renderAdmin(); 
-                Swal.fire('Éxito', 'Venta sumada a la caja.', 'success'); 
-            } 
-        });
-    }
-
-    async function deleteStaff(id) {
-        const result = await Swal.fire({ 
-            title: '¿Borrar Personal?', 
-            text: 'Esta acción lo eliminará de Google Firebase.',
-            icon: 'warning', 
-            showCancelButton: true, 
-            confirmButtonColor: '#d33', 
-            confirmButtonText: 'Sí, eliminar' 
-        });
-
-        if (result.isConfirmed) { 
-            Swal.fire({ title: 'Borrando de la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-            try {
-                const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff/${id}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-                await fetch(url, { method: 'DELETE' });
-                
-                STATE.staff = STATE.staff.filter(s => s.id !== String(id)); 
-                save(); 
-                renderAdmin(); 
-                renderClient();
-                Swal.fire('Eliminado', 'El personal fue removido.', 'success');
-            } catch(e) {
-                Swal.fire('Error', 'No se pudo eliminar de la base de datos.', 'error');
-            }
+    window.deleteAppt = async function(id) {
+        if((await Swal.fire({ title: '¿Cancelar cita?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, Borrar' })).isConfirmed) { 
+            Swal.fire({ title: 'Borrando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            try { await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/cita/${id}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' }); STATE.appts = STATE.appts.filter(x => x.id !== String(id)); save(); window.renderAdmin(); Swal.fire('Cancelada', '', 'success'); } catch(e) {}
         }
-    }
-
-    async function deleteAppt(id) {
-        const result = await Swal.fire({ 
-            title: '¿Cancelar cita?', 
-            text: 'Se eliminará permanentemente de la agenda.',
-            icon: 'warning', 
-            showCancelButton: true, 
-            confirmButtonColor: '#d33', 
-            confirmButtonText: 'Sí, Borrar' 
-        });
-
-        if (result.isConfirmed) { 
-            Swal.fire({ title: 'Cancelando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-            try {
-                const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/cita/${id}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-                await fetch(url, { method: 'DELETE' });
-
-                STATE.appts = STATE.appts.filter(x => x.id !== String(id)); 
-                save(); 
-                renderAdmin(); 
-                Swal.fire('Cancelada', 'La cita ha sido eliminada.', 'success');
-            } catch(e) {
-                Swal.fire('Error', 'Hubo un problema al cancelar la cita en la nube.', 'error');
-            }
-        }
-    }
+    };
     
-  /* --- AGREGAR NUEVO STAFF A LA NUBE --- */
     window.addNewStaff = async function() {
-        const { value: formValues } = await Swal.fire({ 
-            title: 'NUEVO ESPECIALISTA VIP', 
-            html: `
-            <div class="text-start">
-                <label class="small fw-bold">Foto del Profesional:</label>
-                <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
-                
-                <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
-                <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
-                
-                <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
-                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
-                
-                <label class="small fw-bold text-pink">Comisión (%)</label>
-                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
-            </div>`, 
-            showCancelButton: true, 
-            confirmButtonColor: '#FF1493',
-            confirmButtonText: 'Guardar en Google ☁️', 
-            preConfirm: async () => { 
-                const name = document.getElementById('ns-name').value.trim(); 
-                const spec = document.getElementById('ns-spec').value.trim(); 
-                const comm = document.getElementById('ns-comm').value || "20";
-                const file = document.getElementById('ns-file').files[0]; 
-                
-                if (!name || !spec) { 
-                    Swal.showValidationMessage('Nombre y Especialidad obligatorios'); 
-                    return false; 
-                } 
-                
-                let finalImg = 'https://via.placeholder.com/150'; 
-                if (file) { 
-                    try { 
-                        Swal.showLoading();
-                        finalImg = await comprimirYConvertirABase64(file, 300); 
-                    } catch(e) { console.log("Error foto"); } 
-                } 
-                return { name, spec, comm, img: finalImg }; 
-            } 
-        });
-        
+        const { value: formValues } = await Swal.fire({ title: 'NUEVO STAFF', html: `<div class="text-start"><label class="small fw-bold">Foto:</label><input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*"><label class="small fw-bold">Nombre <span class="text-danger">*</span></label><input id="ns-name" class="form-control form-control-sm mb-2"><label class="small fw-bold">Especialidad <span class="text-danger">*</span></label><input id="ns-spec" class="form-control form-control-sm mb-2"><label class="small fw-bold text-pink">Comisión (%)</label><input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20"></div>`, showCancelButton: true, confirmButtonColor: '#FF1493', confirmButtonText: 'Guardar Nube', preConfirm: async () => { const name = document.getElementById('ns-name').value.trim(); const spec = document.getElementById('ns-spec').value.trim(); const comm = document.getElementById('ns-comm').value || "20"; const file = document.getElementById('ns-file').files[0]; if (!name || !spec) { Swal.showValidationMessage('Faltan datos'); return false; } let finalImg = 'https://via.placeholder.com/150'; if (file) { try { Swal.showLoading(); finalImg = await comprimirYConvertirABase64(file, 300); } catch(e) {} } return { name, spec, comm, img: finalImg }; } });
         if (formValues) { 
-            Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-
-            try {
-                const paqueteStaff = {
-                    fields: {
-                        nombre: { stringValue: formValues.name },
-                        especialidad: { stringValue: formValues.spec },
-                        comision: { stringValue: formValues.comm.toString() },
-                        img: { stringValue: formValues.img },
-                        status: { stringValue: "Offline" }
-                    }
-                };
-
-                // URL limpia sin espacios invisibles
-                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-                
-                const respuesta = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paqueteStaff)
-                });
-
-                if (respuesta.ok) {
-                    Swal.fire('¡Logrado!', 'Personal guardado en la nube.', 'success');
-                    // IMPORTANTE: Refrescamos la memoria bajando los datos de nuevo
-                    if (typeof cargarTodoDesdeNube === "function") {
-                        cargarTodoDesdeNube(); 
-                    } else {
-                        console.warn("cargarTodoDesdeNube no existe, recargando página");
-                        setTimeout(() => location.reload(), 1500);
-                    }
-                } else {
-                    const errInfo = await respuesta.json();
-                    console.error("Google Cloud dice:", errInfo);
-                    throw new Error("La nube rechazó la petición");
-                }
-            } catch (e) {
-                Swal.fire('Error', 'No subió: ' + e.message, 'error');
-            }
+            Swal.fire({ title: 'Subiendo...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            try { const paqueteStaff = { fields: { nombre: { stringValue: formValues.name }, especialidad: { stringValue: formValues.spec }, comision: { stringValue: formValues.comm.toString() }, img: { stringValue: formValues.img }, status: { stringValue: "Offline" } } }; const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q"; const respuesta = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(paqueteStaff) }); if (respuesta.ok) { Swal.fire('¡Éxito!', 'Guardado.', 'success'); window.cargarTodoDesdeNube(); } else throw new Error(); } catch (e) { Swal.fire('Error', 'Fallo conexión.', 'error'); }
         }
     };
 
-    async function openStaffPayments() {
-        const { value: formValues } = await Swal.fire({
-            title: '<i class="fas fa-calendar-alt text-pink me-2"></i>Nómina y Comisiones',
-            html: `
-              <div class="text-start">
-                  <p class="small text-muted">Selecciona el rango de fechas para calcular las ventas y comisiones del Staff.</p>
-                  <label class="fw-bold">Fecha Inicio:</label>
-                  <input type="date" id="pay-desde" class="form-control mb-3">
-                  <label class="fw-bold">Fecha Fin:</label>
-                  <input type="date" id="pay-hasta" class="form-control">
-              </div>`,
-            showCancelButton: true, 
-            confirmButtonText: 'Calcular',
-            preConfirm: () => {
-                const desde = document.getElementById('pay-desde').value; 
-                const hasta = document.getElementById('pay-hasta').value;
-                if(!desde || !hasta) { 
-                    Swal.showValidationMessage('Selecciona ambas fechas'); 
-                    return false; 
-                }
-                return { desde, hasta };
-            }
-        });
-  
-        if(formValues) {
-            const [yD, mD, dD] = formValues.desde.split('-'); 
-            const dDesde = new Date(yD, mD - 1, dD, 0, 0, 0);
-            
-            const [yH, mH, dH] = formValues.hasta.split('-'); 
-            const dHasta = new Date(yH, mH - 1, dH, 23, 59, 59);
-  
-            let html = `<h6 class="text-center mb-3">Del ${formValues.desde} al ${formValues.hasta}</h6>`;
-            html += '<div class="list-group text-start shadow-sm border-pink rounded-3">';
-            
+    window.openStaffPayments = async function() {
+        const { value: formValues } = await Swal.fire({ title: '<i class="fas fa-calendar-alt text-pink me-2"></i>Nómina', html: `<div class="text-start"><input type="date" id="pay-desde" class="form-control mb-3"><input type="date" id="pay-hasta" class="form-control"></div>`, showCancelButton: true, confirmButtonText: 'Calcular', preConfirm: () => { const desde = document.getElementById('pay-desde').value; const hasta = document.getElementById('pay-hasta').value; if(!desde || !hasta) return false; return { desde, hasta }; } });
+        if(formValues) { 
+            const [yD, mD, dD] = formValues.desde.split('-'); const dDesde = new Date(yD, mD - 1, dD, 0, 0, 0); const [yH, mH, dH] = formValues.hasta.split('-'); const dHasta = new Date(yH, mH - 1, dH, 23, 59, 59);
+            let html = `<h6 class="text-center mb-3">Del ${formValues.desde} al ${formValues.hasta}</h6><div class="list-group text-start shadow-sm border-pink rounded-3">`;
             STATE.staff.forEach(s => { 
-                let ventasBrutasRango = 0;
-                
-                STATE.sales.forEach(venta => {
-                    if (venta.client === `Servicio Salon - ${s.name}`) {
-                        let fechaVenta = new Date(venta.date);
-                        if(fechaVenta >= dDesde && fechaVenta <= dHasta && !venta.pagada) { 
-                            ventasBrutasRango += parseFloat(venta.total); 
-                        }
-                    }
-                });
-
-                // CÁLCULO DE LA COMISIÓN
-                const comisionAsignada = s.commission || 0;
-                const montoComision = ventasBrutasRango * (comisionAsignada / 100);
-  
-                html += `
-                <div class="list-group-item d-flex justify-content-between align-items-center p-3 border-bottom">
-                    <div class="d-flex align-items-center">
-                        <img src="${s.img}" class="rounded-circle me-3 border border-pink" style="width:40px; height:40px; object-fit:cover;">
-                        <div>
-                            <h6 class="mb-0 fw-bold">${s.name} <span class="badge bg-secondary ms-1">${comisionAsignada}% Comis.</span></h6>
-                            <small class="text-muted d-block">Ventas: RD$ ${ventasBrutasRango.toLocaleString()}</small>
-                            <small class="text-success fw-bold">Por pagar: RD$ ${montoComision.toLocaleString()}</small>
-                        </div>
-                    </div>
-                    <button class="btn btn-sm btn-dark rounded-pill px-3 fw-bold" onclick="payStaff(${s.id}, '${formValues.desde}', '${formValues.hasta}', ${ventasBrutasRango}, ${montoComision})" ${ventasBrutasRango <= 0 ? 'disabled' : ''}>
-                        Liquidar
-                    </button>
-                </div>`; 
-            });
-            
-            html += '</div>'; 
-            Swal.fire({ 
-                title: 'Resultado de Nómina', 
-                html: html, 
-                width: '600px', 
-                showCloseButton: true, 
-                showConfirmButton: false 
-            });
+                let ventasBrutasRango = 0; STATE.sales.forEach(venta => { if (venta.client.includes(s.name)) { let p = venta.date.split('/'); let fVenta = p.length===3 ? new Date(p[2], p[1]-1, p[0]) : new Date(venta.date); if(fVenta >= dDesde && fVenta <= dHasta && !venta.pagada) { ventasBrutasRango += parseFloat(venta.total); } } });
+                const montoComision = ventasBrutasRango * ((s.commission || 0) / 100);
+                html += `<div class="list-group-item d-flex justify-content-between align-items-center p-3 border-bottom"><div class="d-flex align-items-center"><img src="${s.img}" class="rounded-circle me-3 border border-pink" style="width:40px; height:40px; object-fit:cover;"><div><h6 class="mb-0 fw-bold">${s.name} <span class="badge bg-secondary ms-1">${s.commission || 0}%</span></h6><small class="text-muted d-block">Ventas: RD$ ${ventasBrutasRango.toLocaleString()}</small><small class="text-success fw-bold">Pagar: RD$ ${montoComision.toLocaleString()}</small></div></div><button class="btn btn-sm btn-dark rounded-pill px-3 fw-bold" onclick="window.payStaff('${s.id}', '${formValues.desde}', '${formValues.hasta}', ${ventasBrutasRango}, ${montoComision})" ${ventasBrutasRango <= 0 ? 'disabled' : ''}>Liquidar</button></div>`; 
+            }); html += '</div>'; Swal.fire({ title: 'Resultado Nómina', html: html, width: '600px', showCloseButton: true, showConfirmButton: false });
         }
-    }
+    };
   
-    function payStaff(id, desde, hasta, ventasBrutas, montoComision) { 
-        const s = STATE.staff.find(x => x.id === id); 
-        if(!s || ventasBrutas <= 0) return; 
-        
-        Swal.fire({ 
-            title: `Liquidar a ${s.name}`, 
-            html: `
-            <div class="text-start">
-                <p class="mb-1 text-muted">Ventas Brutas Totales: RD$ ${ventasBrutas.toLocaleString()}</p>
-                <p class="mb-3 text-muted">Comisión Establecida: ${s.commission || 0}%</p>
-                <label class="fw-bold text-pink">Monto a Pagar (Ajustable si deseas):</label>
-                <input type="number" id="monto-final-pago" class="form-control form-control-lg fw-bold" value="${montoComision}">
-            </div>`, 
-            icon: 'question', 
-            showCancelButton: true, 
-            confirmButtonText: 'Generar Pago y Recibo', 
-            cancelButtonText: 'Cancelar',
-            preConfirm: () => parseFloat(document.getElementById('monto-final-pago').value) || 0
-        }).then(r => { 
-            if(r.isConfirmed && r.value > 0) { 
-                const montoFinal = r.value;
-                const [yD, mD, dD] = desde.split('-'); 
-                const dDesde = new Date(yD, mD - 1, dD, 0, 0, 0);
-                
-                const [yH, mH, dH] = hasta.split('-'); 
-                const dHasta = new Date(yH, mH - 1, dH, 23, 59, 59);
-                
-                STATE.sales.forEach(venta => {
-                    if (venta.client === `Servicio Salon - ${s.name}`) {
-                        const fechaVenta = new Date(venta.date);
-                        if(fechaVenta >= dDesde && fechaVenta <= dHasta) { 
-                            venta.pagada = true; 
-                        }
-                    }
-                });
-                
-                generateStaffReceipt(s, montoFinal, desde, hasta); 
-                save(); 
-                Swal.fire('Pago Exitoso', `El recibo de nómina ha sido descargado y las ventas han sido saldadas en el sistema.`, 'success'); 
-            } 
-        }); 
-    }
+    window.payStaff = function(id, desde, hasta, ventasBrutas, montoComision) { 
+        const s = STATE.staff.find(x => x.id === id); if(!s) return; 
+        Swal.fire({ title: `Liquidar a ${s.name}`, html: `<div class="text-start"><label class="fw-bold text-pink">Monto a Pagar:</label><input type="number" id="monto-final-pago" class="form-control form-control-lg fw-bold" value="${montoComision}"></div>`, showCancelButton: true, confirmButtonText: 'Generar Recibo' }).then(r => { if(r.isConfirmed && r.value > 0) { window.generateStaffReceipt(s, r.value, desde, hasta); Swal.fire('Éxito', 'Recibo generado.', 'success'); } }); 
+    };
   
-    function generateStaffReceipt(staff, monto, desde, hasta) { 
-        const { jsPDF } = window.jspdf; 
-        const doc = new jsPDF(); 
-        
-        doc.setFont("helvetica", "bold"); 
-        doc.setFontSize(16); 
-        doc.text("GLAM BEAUTY SALON VIP", 105, 20, {align:"center"}); 
-        
-        doc.setFontSize(12); 
-        doc.text("RECIBO OFICIAL DE NÓMINA / COMISIÓN", 105, 28, {align:"center"}); 
-        
-        doc.setFont("helvetica", "normal"); 
-        doc.setFontSize(11); 
-        doc.text(`Fecha Emisión: ${new Date().toLocaleDateString()}`, 20, 45); 
-        doc.text(`Periodo Pagado: ${desde} al ${hasta}`, 20, 52); 
-        doc.text(`Colaborador: ${staff.name}`, 20, 59); 
-        
-        doc.setFont("helvetica", "bold"); 
-        doc.setFontSize(14); 
-        doc.text(`MONTO TOTAL LIQUIDADO: RD$ ${monto.toLocaleString()}`, 20, 75); 
-        
-        doc.setFont("helvetica", "normal"); 
-        doc.setFontSize(9); 
-        const terminos = "Términos Legales:\nEl presente documento certifica el pago total por las comisiones y servicios generados por\nel colaborador en el rango de fechas indicado. Con la firma de este recibo, el receptor\nacepta la conformidad del monto y libera a la empresa de cualquier reclamación."; 
-        doc.text(terminos, 20, 95); 
-        
-        doc.line(30, 150, 90, 150); 
-        doc.setFontSize(10); 
-        doc.text("Firma (Gerencia)", 40, 155); 
-        
-        doc.line(120, 150, 180, 150); 
-        doc.text("Firma (Colaborador)", 130, 155); 
-        
-        doc.save(`Nomina_Comision_${staff.name.replace(/\s/g, '_')}.pdf`); 
-    }
+    window.generateStaffReceipt = function(staff, monto, desde, hasta) { 
+        const { jsPDF } = window.jspdf; const doc = new jsPDF(); 
+        doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("GLAM VIP", 105, 20, {align:"center"}); 
+        doc.setFontSize(12); doc.text("RECIBO NÓMINA", 105, 28, {align:"center"}); doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 45); doc.text(`Colaborador: ${staff.name}`, 20, 52); doc.setFont("helvetica", "bold"); doc.text(`PAGADO: RD$ ${parseFloat(monto).toLocaleString()}`, 20, 65); doc.save(`Nomina_${staff.name}.pdf`); 
+    };
 
-    function generateProfessionalZReport() {
-        if(STATE.sales.length === 0 && STATE.caja === 0) {
-            return Swal.fire('Caja Vacía', 'No hay transacciones.', 'info');
-        }
-        
-        const { jsPDF } = window.jspdf; 
-        const doc = new jsPDF(); 
-        
-        doc.setFont("helvetica", "bold"); 
-        doc.setFontSize(18); 
-        doc.text("REPORTE FISCAL DE CIERRE (Z)", 105, 20, {align:"center"}); 
-        
-        doc.setFontSize(10); 
-        doc.setFont("helvetica", "normal"); 
-        doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 15, 30); 
-        doc.text(`Transacciones: ${STATE.sales.length}`, 15, 36); 
-        doc.text(`CAJA TOTAL: RD$ ${STATE.caja.toLocaleString(undefined, {minimumFractionDigits:2})}`, 15, 42);
-        
-        const tableData = STATE.sales.map(s => [s.ncf, s.client.substring(0, 15), s.time, s.method, `RD$ ${s.total}`]); 
-        
-        doc.autoTable({ 
-            startY: 50, 
-            head: [['Comprobante', 'Cliente', 'Hora', 'Método', 'Monto']], 
-            body: tableData, 
-            theme: 'striped', 
-            headStyles: { fillColor: [255, 20, 147] } 
-        }); 
-        
-        doc.save(`GLAM_REPORTE_Z_${Date.now()}.pdf`);
-        
-        setTimeout(() => { 
-            Swal.fire({ 
-                title: '¿Cerrar Caja?', 
-                text: "Se reiniciará el contador a RD$ 0.00", 
-                icon: 'warning', 
-                showCancelButton: true, 
-                confirmButtonColor: '#d33', 
-                confirmButtonText: 'Sí, cerrar' 
-            }).then((r) => { 
-                if (r.isConfirmed) { 
-                    STATE.caja = 0; 
-                    STATE.sales = []; 
-                    save(); 
-                    renderAdmin(); 
-                    Swal.fire('Cerrada', '', 'success'); 
-                } 
-            }); 
-        }, 800);
-    }
+    window.generateProfessionalZReport = function() {
+        if(STATE.sales.length === 0 && STATE.caja === 0) return Swal.fire('Caja Vacía', '', 'info');
+        const { jsPDF } = window.jspdf; const doc = new jsPDF(); 
+        doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text("REPORTE Z", 105, 20, {align:"center"}); doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 15, 30); doc.text(`CAJA: RD$ ${STATE.caja.toLocaleString()}`, 15, 36);
+        const tableData = STATE.sales.map(s => [s.ncf, s.client.substring(0, 15), s.time, s.method, `RD$ ${s.total}`]); doc.autoTable({ startY: 45, head: [['NCF', 'Cliente', 'Hora', 'Método', 'Total']], body: tableData, headStyles: { fillColor: [255, 20, 147] } }); doc.save(`Z_${Date.now()}.pdf`); 
+        setTimeout(() => { Swal.fire({ title: '¿Cerrar Caja?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Cerrar' }).then((r) => { if (r.isConfirmed) { STATE.caja = 0; STATE.sales = []; save(); window.renderAdmin(); Swal.fire('Cerrada', '', 'success'); } }); }, 800);
+    };
 
-    /* ==========================================================================
-       9. GRÁFICO (CHART.JS)
-       ========================================================================== */
-    function renderChart() {
-        const canvas = document.getElementById('salesChart'); 
-        if(!canvas) return; 
-        
-        const etiquetasDias = []; 
-        const datosVentas = [];
-        
+    window.renderChart = function() {
+        const canvas = document.getElementById('salesChart'); if(!canvas) return; 
+        const etiquetasDias = []; const datosVentas = []; 
         for (let i = 6; i >= 0; i--) {
-            const d = new Date(); 
-            d.setDate(d.getDate() - i); 
-            const fechaStr = d.toLocaleDateString();
-            
-            etiquetasDias.push(fechaStr.substring(0, 5)); 
-            
-            let totalDia = 0; 
-            STATE.sales.forEach(s => { 
-                if(s.date === fechaStr) { totalDia += parseFloat(s.total); } 
-            });
-            
-            datosVentas.push(totalDia);
+            const d = new Date(); d.setDate(d.getDate() - i); const fechaStr = d.toLocaleDateString(); etiquetasDias.push(fechaStr.substring(0, 5)); let totalDia = 0; STATE.sales.forEach(s => { if(s.date === fechaStr) totalDia += parseFloat(s.total); }); datosVentas.push(totalDia);
         }
-        
-        if(window.myChart) { 
-            window.myChart.destroy(); 
-        }
-        
-        window.myChart = new Chart(canvas, {
-            type: 'line',
-            data: { 
-                labels: etiquetasDias, 
-                datasets: [{ 
-                    label: 'Ingresos (RD$)', 
-                    data: datosVentas, 
-                    borderColor: '#FF1493', 
-                    backgroundColor: 'rgba(255, 20, 147, 0.2)', 
-                    fill: true, 
-                    tension: 0.4, 
-                    borderWidth: 3, 
-                    pointBackgroundColor: '#121212' 
-                }] 
-            },
-            options: { 
-                responsive: true, 
-                plugins: { legend: { display: false } } 
-            }
-        });
-    }
+        if(window.myChart) window.myChart.destroy(); window.myChart = new Chart(canvas, { type: 'line', data: { labels: etiquetasDias, datasets: [{ label: 'Ventas', data: datosVentas, borderColor: '#FF1493', backgroundColor: 'rgba(255, 20, 147, 0.2)', fill: true, tension: 0.4 }] }, options: { responsive: true, plugins: { legend: { display: false } } } });
+    };
 
     /* ==========================================================================
-       10. VISTA PÚBLICA DEL CLIENTE (AGENDA Y BOUTIQUE)
+       8. VISTA CLIENTE Y CARRITO
        ========================================================================== */
-    function renderClient() {
+    window.renderClient = function() {
         let html = '';
         STATE.staff.forEach(s => {
-            const opacity = s.status !== 'Online' ? 'opacity:0.6; filter:grayscale(1)' : '';
-            const clickAction = s.status === 'Online' ? `bookAppt('${s.name}')` : 'void(0)';
-            const rightIcon = s.status === 'Online' ? '<i class="fas fa-chevron-right ms-auto text-pink"></i>' : '';
-            
-            html += `
-            <div class="staff-card-vip shadow-sm cursor-pointer d-flex flex-row align-items-center" style="${opacity}" onclick="${clickAction}">
-                <img src="${s.img || 'https://via.placeholder.com/150'}" class="staff-img">
-                <div>
-                    <h6 class="fw-bold mb-0">${s.name}</h6>
-                    <small class="text-pink fw-bold" style="font-size:11px">${s.specialty || 'Servicios Generales'}</small>
-                </div>
-                ${rightIcon}
-            </div>`;
+            const opacity = (s.status !== 'Online' && s.status !== 'Activo') ? 'opacity:0.6; filter:grayscale(1)' : '';
+            const clickAction = (s.status === 'Online' || s.status === 'Activo') ? `window.bookAppt('${s.name}')` : 'void(0)';
+            html += `<div class="staff-card-vip shadow-sm cursor-pointer d-flex flex-row align-items-center" style="${opacity}" onclick="${clickAction}"><img src="${s.img || 'https://via.placeholder.com/150'}" class="staff-img"><div><h6 class="fw-bold mb-0">${s.name}</h6><small class="text-pink fw-bold" style="font-size:11px">${s.specialty || 'General'}</small></div></div>`;
         });
-        document.getElementById('client-stylist-list').innerHTML = html;
-    }
-
-    async function bookAppt(stylistName) {
-        await Swal.fire({ 
-            title: `Reservar con ${stylistName}`, 
-            html: `
-            <div class="text-start">
-                <label class="small fw-bold">Correo (Requerido para el Ticket):</label>
-                <input id="sw-email" type="email" class="form-control form-control-sm mb-3">
-                <label class="small fw-bold">Fecha de visita:</label>
-                <input id="sw-date" type="date" class="form-control form-control-sm mb-3" onchange="checkAvailability('${stylistName}')">
-                <label class="small fw-bold text-pink">Disponibilidad:</label>
-                <div id="time-slots" class="d-flex flex-wrap gap-2 justify-content-center mt-2 p-3 bg-light rounded border border-pink">
-                    <small class="text-muted">Selecciona fecha en el calendario superior...</small>
-                </div>
-            </div>`, 
-            showConfirmButton: false, 
-            showCancelButton: true, 
-            cancelButtonText: 'Cerrar', 
-            didOpen: () => { 
-                document.getElementById('sw-date').min = new Date().toISOString().split("T")[0]; 
-                if (STATE.currentUser) {
-                    document.getElementById('sw-email').value = STATE.currentUser.email;
-                }
-            } 
-        });
-    }
-
-    window.triggerConfirmBooking = async function(date, hora, stylist) {
-        const email = document.getElementById('sw-email').value.trim(); 
-        if(!email || !email.includes('@')) {
-            return Swal.fire('Error', 'Proporciona un correo válido.', 'error'); 
-        }
-        
-        const ticketCode = "GLAM-" + Math.floor(Math.random()*90000 + 10000); 
-
-        // Mostramos que estamos procesando
-        Swal.fire({
-            title: 'Reservando tu espacio VIP...',
-            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>',
-            allowOutsideClick: false,
-            showConfirmButton: false
-        });
-
-        try {
-            // 1. PREPARAMOS LOS DATOS PARA FIREBASE
-            const datosCita = {
-                fields: {
-                    ticket: { stringValue: ticketCode },
-                    estilista: { stringValue: stylist },
-                    fecha: { stringValue: date },
-                    hora: { stringValue: hora },
-                    cliente_email: { stringValue: email },
-                    estado: { stringValue: "Confirmada" }
-                }
-            };
-
-            // 2. ENVIAMOS A LA COLECCIÓN "cita" EN FIREBASE
-            const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/cita?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-            
-            const respuesta = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datosCita)
-            });
-
-            if (respuesta.ok) {
-                // Guardamos en el sistema local para que aparezca de una vez
-                STATE.appts.push({ 
-                    id: Date.now(), 
-                    ticket: ticketCode, 
-                    stylist: stylist, 
-                    date: date, 
-                    time: hora, 
-                    email: email 
-                });
-                
-                save(); 
-
-                // 3. ENVÍO OPCIONAL A FORMSPREE (Para que te llegue el aviso al móvil)
-                fetch("https://formspree.io/f/xkopberl", {
-                    method: "POST",
-                    headers: { "Accept": "application/json", "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        Asunto: "¡NUEVA RESERVA DESDE LA NUBE!",
-                        Ticket: ticketCode,
-                        Especialista: stylist,
-                        Fecha: date,
-                        Hora: hora
-                    })
-                }).catch(err => console.log("Formspree offline"));
-                
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: '¡RESERVA CONFIRMADA!', 
-                    html: `Tu cita está guardada en la nube.<br>Ticket: <h2 class="text-pink">${ticketCode}</h2>`, 
-                    confirmButtonText: '¡Perfecto!' 
-                });
-            } else {
-                throw new Error("Google no pudo guardar la cita.");
-            }
-        } catch (error) {
-            Swal.fire('Error', 'No pudimos conectar con la agenda: ' + error.message, 'error');
-        }
+        if(document.getElementById('client-stylist-list')) document.getElementById('client-stylist-list').innerHTML = html;
     };
 
-    function checkAvailability(stylist) {
-        const date = document.getElementById('sw-date').value; 
-        const container = document.getElementById('time-slots'); 
-        
-        if(!date) return; 
-        container.innerHTML = "";
-        
-        const horarios = ["09:00 AM", "10:30 AM", "12:00 PM", "02:00 PM", "04:00 PM", "06:00 PM"];
-        let htmlBotones = '';
-        
+    window.bookAppt = async function(stylistName) {
+        await Swal.fire({ title: `Reservar con ${stylistName}`, html: `<div class="text-start"><input id="sw-email" type="email" class="form-control form-control-sm mb-3" placeholder="Tu correo"><input id="sw-date" type="date" class="form-control form-control-sm mb-3" onchange="window.checkAvailability('${stylistName}')"><div id="time-slots" class="d-flex flex-wrap gap-2 justify-content-center mt-2 p-3 bg-light rounded"><small class="text-muted">Elige fecha...</small></div></div>`, showConfirmButton: false, showCancelButton: true, cancelButtonText: 'Cerrar', didOpen: () => { document.getElementById('sw-date').min = new Date().toISOString().split("T")[0]; if (STATE.currentUser) document.getElementById('sw-email').value = STATE.currentUser.email; } });
+    };
+
+    window.checkAvailability = function(stylist) {
+        const date = document.getElementById('sw-date').value; const container = document.getElementById('time-slots'); if(!date) return; container.innerHTML = "";
+        const horarios = ["09:00 AM", "10:30 AM", "12:00 PM", "02:00 PM", "04:00 PM", "06:00 PM"]; let htmlBotones = '';
         horarios.forEach(hora => {
             const isTaken = STATE.appts.find(a => a.date === date && a.time === hora && a.stylist === stylist);
-            
-            if (isTaken) { 
-                htmlBotones += `<button class="btn btn-secondary rounded-pill px-3 shadow-sm text-decoration-line-through" disabled>${hora}</button>`; 
-            } else { 
-                htmlBotones += `<button class="btn btn-outline-danger rounded-pill px-3 shadow-sm fw-bold" onclick="window.triggerConfirmBooking('${date}', '${hora}', '${stylist}')">${hora}</button>`; 
-            } 
-        });
-        
-        container.innerHTML = htmlBotones;
-    }
+            if (isTaken) htmlBotones += `<button class="btn btn-secondary rounded-pill px-3 shadow-sm text-decoration-line-through" disabled>${hora}</button>`; else htmlBotones += `<button class="btn btn-outline-danger rounded-pill px-3 shadow-sm fw-bold" onclick="window.triggerConfirmBooking('${date}', '${hora}', '${stylist}')">${hora}</button>`; 
+        }); container.innerHTML = htmlBotones;
+    };
 
-    async function trackGlamTicket() {
-        const { value: ticket } = await Swal.fire({ 
-            title: '<i class="fas fa-search-location text-pink me-2"></i>Rastreo VIP', 
-            input: 'text', 
-            inputPlaceholder: 'Ingresa tu ticket Ej: GLAM-12345', 
-            confirmButtonColor: '#FF1493', 
-            confirmButtonText: 'Buscar Mi Cita' 
-        });
-        
-        if(ticket) {
-            const a = STATE.appts.find(x => x.ticket.toUpperCase() === ticket.toUpperCase());
-            if(a) { 
-                Swal.fire({ 
-                    html: `
-                    <div class="glass-card p-4 text-center">
-                        <span class="badge bg-dark mb-2">TICKET: ${a.ticket}</span>
-                        <h3 class="glam-font mb-0 text-dark">Cita Confirmada</h3>
-                        <p class="text-muted small">Te esperamos con ansias.</p>
-                        <div class="mt-3 bg-white p-3 rounded-4 shadow-sm border text-start">
-                            <h6 class="fw-bold mb-0">${a.stylist}</h6>
-                            <small class="text-pink fw-bold"><i class="fas fa-calendar-check me-1"></i>${a.date} a las ${a.time}</small>
-                        </div>
-                    </div>`, 
-                    showConfirmButton: false, 
-                    showCloseButton: true 
-                }); 
-            } else { 
-                Swal.fire('No encontrado', 'Verifica el número de ticket.', 'error'); 
-            }
-        }
-    }
+    window.triggerConfirmBooking = async function(date, hora, stylist) {
+        const email = document.getElementById('sw-email').value.trim(); if(!email) return;
+        const ticketCode = "GLAM-" + Math.floor(Math.random()*90000 + 10000); 
+        Swal.fire({ title: 'Reservando...', html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>', allowOutsideClick: false, showConfirmButton: false });
+        try {
+            const datos = { fields: { ticket: { stringValue: ticketCode }, estilista: { stringValue: stylist }, fecha: { stringValue: date }, hora: { stringValue: hora }, cliente_email: { stringValue: email }, estado: { stringValue: "Confirmada" } } };
+            await fetch("https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/cita?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q", { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+            STATE.appts.push({ id: Date.now(), ticket: ticketCode, stylist: stylist, date: date, time: hora, email: email }); save(); 
+            fetch("https://formspree.io/f/xkopberl", { method: "POST", headers: { "Accept": "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ Asunto: "NUEVA RESERVA", Ticket: ticketCode, Especialista: stylist, Fecha: date, Hora: hora }) }).catch(e=>{});
+            Swal.fire({ icon: 'success', title: 'CONFIRMADA', html: `Ticket: <h2 class="text-pink">${ticketCode}</h2>`, confirmButtonText: 'OK' });
+        } catch (error) {}
+    };
 
-    function filterShop(cat) {
-        const grid = document.getElementById('client-grid'); 
-        const items = cat === 'all' ? STATE.inventory : STATE.inventory.filter(i => (i.cat || 'General') === cat || (cat === 'Pelo' && i.cat === 'Cabello'));
-        
-        if(items.length === 0) { 
-            grid.innerHTML = '<div class="text-center p-5 text-muted w-100">Boutique vacía en esta sección.</div>'; 
-            return; 
-        }
-        
-        let html = '';
-        items.forEach(p => {
-            html += `
-            <div class="col-12 col-md-6 col-xl-4 mb-4 animate__animated animate__fadeIn d-flex">
-              <div class="pro-card text-center pb-4 shadow-sm border w-100 d-flex flex-column">
-                <div class="img-container mb-3 border-bottom">
-                  <img src="${p.img}">
-                  <div class="badge bg-dark position-absolute top-0 start-0 m-3 px-3 py-2 opacity-75">${p.brand || p.supplier || 'Glam Boutique'}</div>
-                  <button onclick="addToCart(${p.id})" class="btn-float-cart d-flex align-items-center justify-content-center" ${p.stock <= 0 ? 'disabled style="background:gray"':''}><i class="fas fa-shopping-bag"></i></button>
-                </div>
-                <div class="px-4 text-start d-flex flex-column flex-grow-1">
-                  <span class="badge bg-soft-pink text-pink mb-2 align-self-start">${p.cat || 'General'}</span>
-                  <h5 class="fw-900 mb-1" style="font-size:16px">${p.name}</h5>
-                  <div class="d-flex justify-content-between align-items-end mt-auto pt-3">
-                    <span class="fw-bold text-muted small">${p.stock > 0 ? 'Disponible' : 'Agotado'}</span>
-                    <span class="fw-900 fs-4" style="color:var(--glam-pink)">RD$ ${p.price.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            </div>`;
-        });
-        
+    window.trackGlamTicket = async function() {
+        const { value: t } = await Swal.fire({ title: 'Rastreo', input: 'text', confirmButtonColor: '#FF1493' });
+        if(t) { const a = STATE.appts.find(x => x.ticket.toUpperCase() === t.toUpperCase()); if(a) Swal.fire({ html: `<h3>Confirmada</h3><p>${a.stylist} - ${a.date} ${a.time}</p>`, showConfirmButton: false, showCloseButton: true }); else Swal.fire('No encontrado', '', 'error'); }
+    };
+
+    window.filterShop = function(cat) {
+        const grid = document.getElementById('client-grid'); const items = cat === 'all' ? STATE.inventory : STATE.inventory.filter(i => (i.cat || 'General') === cat);
+        if(items.length === 0) { grid.innerHTML = '<div class="text-center p-5 text-muted w-100">Boutique vacía.</div>'; return; }
+        let html = ''; items.forEach(p => { html += `<div class="col-12 col-md-6 col-xl-4 mb-4 d-flex"><div class="pro-card text-center pb-4 shadow-sm border w-100 d-flex flex-column"><div class="img-container mb-3 border-bottom"><img src="${p.img}"><button onclick="window.addToCart(${p.id})" class="btn-float-cart d-flex align-items-center justify-content-center" ${p.stock <= 0 ? 'disabled style="background:gray"':''}><i class="fas fa-shopping-bag"></i></button></div><div class="px-4 text-start d-flex flex-column flex-grow-1"><h5 class="fw-900 mb-1" style="font-size:16px">${p.name}</h5><div class="d-flex justify-content-between align-items-end mt-auto pt-3"><span class="fw-bold text-muted small">${p.stock > 0 ? 'Disponible' : 'Agotado'}</span><span class="fw-900 fs-4" style="color:var(--glam-pink)">RD$ ${p.price.toLocaleString()}</span></div></div></div></div>`; });
         grid.innerHTML = html;
-    }
+    };
 
-    /* ==========================================================================
-       11. LOGÍSTICA Y CARRITO
-       ========================================================================== */
-    function toggleLogistics() { 
-        const box = document.getElementById('logistics-box'); 
-        box.classList.toggle('hidden'); 
-        updateCart(); 
-        
-        if(!box.classList.contains('hidden')) { 
-            setTimeout(() => { 
-                if(!map) { 
-                    const mapDiv = document.getElementById('map');
-                    if(mapDiv) {
-                        map = L.map('map').setView([18.4861, -69.9312], 13); 
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); 
-                        
-                        map.on('click', async (e) => { 
-                            if(marker) { 
-                                marker.setLatLng(e.latlng); 
-                            } else { 
-                                marker = L.marker(e.latlng, {draggable: true}).addTo(map); 
-                            }
-                            
-                            try { 
-                                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}`); 
-                                const data = await res.json(); 
-                                
-                                if(data && data.display_name) { 
-                                    document.getElementById('delivery-addr').value = data.display_name; 
-                                } 
-                            } catch(err) { 
-                                console.error("GPS Falló", err); 
-                            }
-                        }); 
-                    }
-                } 
-            }, 300); 
-        } 
-    }
-
-    function addToCart(id) { 
-        const p = STATE.inventory.find(x => x.id === id); 
-        STATE.cart.push({...p}); 
-        updateCart(); 
-        document.getElementById('cart-sidebar').classList.add('active'); 
-    }
-
-    function updateCart() {
-        let sub = 0; 
-        STATE.cart.forEach(i => sub += parseFloat(i.price || 0));
-        
-        const delCheck = document.getElementById('delivery-check'); 
-        const del = (delCheck && delCheck.checked) ? 250 : 0; 
-        
-        const itbis = sub * 0.18; 
-        const total = sub + itbis + del;
-        
-        document.getElementById('cart-count').innerText = STATE.cart.length; 
-        document.getElementById('cart-subtotal').innerText = `RD$ ${sub.toLocaleString(undefined, {minimumFractionDigits: 2})}`; 
-        document.getElementById('cart-itbis').innerText = `RD$ ${itbis.toLocaleString(undefined, {minimumFractionDigits: 2})}`; 
-        document.getElementById('cart-total').innerText = `RD$ ${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-        
-        if(STATE.cart.length === 0) { 
-            document.getElementById('cart-list').innerHTML = '<div class="text-center p-4 text-muted border border-dashed rounded-4">Bolsa Vacía</div>'; 
-        } else {
-            let html = '';
-            STATE.cart.forEach((i, idx) => { 
-                html += `
-                <div class="d-flex justify-content-between align-items-center mb-3 bg-white border border-pink p-2 rounded-3 shadow-sm">
-                    <div class="d-flex align-items-center">
-                        <img src="${i.img}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;" class="me-2">
-                        <span><b style="font-size:12px">${i.name.substring(0,18)}...</b><br><small class="text-pink fw-bold">RD$ ${parseFloat(i.price).toLocaleString()}</small></span>
-                    </div>
-                    <button class="btn btn-sm text-danger" onclick="removeItem(${idx})"><i class="fas fa-times"></i></button>
-                </div>`; 
-            });
-            document.getElementById('cart-list').innerHTML = html;
-        }
-    }
-
-    function removeItem(i) { 
-        STATE.cart.splice(i,1); 
-        updateCart(); 
-    }
+    window.toggleLogistics = function() { const box = document.getElementById('logistics-box'); box.classList.toggle('hidden'); window.updateCart(); if(!box.classList.contains('hidden')) { setTimeout(() => { if(!map) { const mapDiv = document.getElementById('map'); if(mapDiv) { map = L.map('map').setView([18.4861, -69.9312], 13); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); map.on('click', async (e) => { if(marker) marker.setLatLng(e.latlng); else marker = L.marker(e.latlng, {draggable: true}).addTo(map); try { const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}`); const data = await res.json(); if(data && data.display_name) document.getElementById('delivery-addr').value = data.display_name; } catch(err) {} }); } } }, 300); } };
+    window.addToCart = function(id) { const p = STATE.inventory.find(x => x.id === id); STATE.cart.push({...p}); window.updateCart(); document.getElementById('cart-sidebar').classList.add('active'); };
+    window.updateCart = function() { let sub = 0; STATE.cart.forEach(i => sub += parseFloat(i.price || 0)); const delCheck = document.getElementById('delivery-check'); const del = (delCheck && delCheck.checked) ? 250 : 0; const itbis = sub * 0.18; const total = sub + itbis + del; document.getElementById('cart-count').innerText = STATE.cart.length; document.getElementById('cart-subtotal').innerText = `RD$ ${sub.toLocaleString(undefined, {minimumFractionDigits: 2})}`; document.getElementById('cart-itbis').innerText = `RD$ ${itbis.toLocaleString(undefined, {minimumFractionDigits: 2})}`; document.getElementById('cart-total').innerText = `RD$ ${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`; if(STATE.cart.length === 0) { document.getElementById('cart-list').innerHTML = '<div class="text-center p-4 text-muted">Bolsa Vacía</div>'; } else { let html = ''; STATE.cart.forEach((i, idx) => { html += `<div class="d-flex justify-content-between align-items-center mb-3 bg-white border border-pink p-2 rounded-3 shadow-sm"><div class="d-flex align-items-center"><img src="${i.img}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;" class="me-2"><span><b style="font-size:12px">${i.name.substring(0,18)}...</b><br><small class="text-pink fw-bold">RD$ ${parseFloat(i.price).toLocaleString()}</small></span></div><button class="btn btn-sm text-danger" onclick="window.removeItem(${idx})"><i class="fas fa-times"></i></button></div>`; }); document.getElementById('cart-list').innerHTML = html; } };
+    window.removeItem = function(i) { STATE.cart.splice(i,1); window.updateCart(); };
+    window.toggleCart = function() { document.getElementById('cart-sidebar').classList.toggle('active'); };
+    window.toggleCardFields = function() { document.getElementById('card-fields').classList.toggle('hidden', document.getElementById('pay-mode').value !== 'Tarjeta'); };
+    window.toggleRncField = function() { const tipo = document.getElementById('f-tipo').value; const rncBox = document.getElementById('rnc-box'); if (tipo === 'B01') rncBox.classList.remove('hidden'); else { rncBox.classList.add('hidden'); document.getElementById('f-rnc').value = ''; } };
     
-    function toggleCart() { 
-        document.getElementById('cart-sidebar').classList.toggle('active'); 
-    }
+    window.openCheckout = function() { if(STATE.cart.length === 0) return Swal.fire('Vacía', '', 'warning'); document.getElementById('cart-sidebar').classList.remove('active'); window.updateInvoice(); if (typeof bootstrap !== 'undefined') { let m = bootstrap.Modal.getInstance(document.getElementById('payModal')); if (!m) m = new bootstrap.Modal(document.getElementById('payModal')); m.show(); if (STATE.currentUser && STATE.currentUser.role !== 'admin') document.getElementById('f-name').value = STATE.currentUser.name; } };
+    window.updateInvoice = function() { let sub = 0; STATE.cart.forEach(i => sub += parseFloat(i.price || 0)); const delCheck = document.getElementById('delivery-check'); const del = (delCheck && delCheck.checked) ? 250 : 0; const tipInput = document.getElementById('f-tip'); const tip = tipInput ? (parseFloat(tipInput.value) || 0) : 0; const itbis = sub * 0.18; const total = sub + itbis + del + tip; document.getElementById('btn-total').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2}); const tipoFactura = document.getElementById('f-tipo') ? document.getElementById('f-tipo').value : 'B02'; const rnc = document.getElementById('f-rnc') ? document.getElementById('f-rnc').value : ''; let html = `<div class="text-center mb-3"><h5 class="fw-bold glam-font text-pink fs-3">Glam Salon</h5></div><div class="small d-flex justify-content-between mb-1 fw-bold"><span>CLIENTE:</span><span class="text-uppercase">${document.getElementById('f-name').value || 'CONTADO'}</span></div>`; if (tipoFactura === 'B01' && rnc) html += `<div class="small d-flex justify-content-between mb-2 fw-bold text-danger"><span>RNC:</span><span>${rnc}</span></div>`; html += `<hr>`; STATE.cart.forEach(i => { html += `<div class="d-flex justify-content-between small mb-1"><span>1x ${i.name.substring(0,18)}</span><span>${parseFloat(i.price).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`; }); if(del > 0) html += `<div class="d-flex justify-content-between small mb-1"><span>Envío</span><span>250.00</span></div>`; html += `<hr><div class="d-flex justify-content-between fw-900 fs-5 mt-3 border-top pt-2"><span>TOTAL:</span><span>RD$ ${total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div><div class="mt-4 text-center"><svg id="barcode-preview"></svg></div>`; document.getElementById('invoice-render').innerHTML = html; try { JsBarcode("#barcode-preview", "PRE-"+Date.now().toString().slice(-6), { format: "CODE128", width: 1.5, height: 35, displayValue: false, lineColor: "#FF1493" }); } catch(e){} };
 
-    /* ==========================================================================
-       12. CHECKOUT Y GENERACIÓN DE FACTURAS / PDF (FORMSPREE)
-       ========================================================================== */
-    function toggleCardFields() { 
-        document.getElementById('card-fields').classList.toggle('hidden', document.getElementById('pay-mode').value !== 'Tarjeta'); 
-    }
-    
-    function toggleRncField() {
-        const tipo = document.getElementById('f-tipo').value;
-        const rncBox = document.getElementById('rnc-box');
-        if (tipo === 'B01') {
-            rncBox.classList.remove('hidden');
-        } else {
-            rncBox.classList.add('hidden');
-            document.getElementById('f-rnc').value = ''; 
-        }
-    }
-
-    function openCheckout() { 
-        if(STATE.cart.length === 0) {
-            return Swal.fire('Bolsa Vacía', 'Agrega productos a la bolsa.', 'warning'); 
-        }
-        
-        document.getElementById('cart-sidebar').classList.remove('active'); 
-        updateInvoice(); 
-        
-        if (typeof bootstrap !== 'undefined') { 
-            let m = bootstrap.Modal.getInstance(document.getElementById('payModal')); 
-            if (!m) m = new bootstrap.Modal(document.getElementById('payModal')); 
-            m.show(); 
-            
-            if (STATE.currentUser && STATE.currentUser.role !== 'admin') { 
-                document.getElementById('f-name').value = STATE.currentUser.name; 
-            }
-        } 
-    }
-
-    function updateInvoice() {
-        let sub = 0; 
-        STATE.cart.forEach(i => sub += parseFloat(i.price || 0));
-        
-        const delCheck = document.getElementById('delivery-check'); 
-        const del = (delCheck && delCheck.checked) ? 250 : 0; 
-        
-        const tipInput = document.getElementById('f-tip'); 
-        const tip = tipInput ? (parseFloat(tipInput.value) || 0) : 0; 
-        
-        const itbis = sub * 0.18; 
-        const total = sub + itbis + del + tip; 
-        
-        document.getElementById('btn-total').innerText = total.toLocaleString(undefined, {minimumFractionDigits: 2});
-        
-        const tipoFactura = document.getElementById('f-tipo') ? document.getElementById('f-tipo').value : 'B02';
-        const rnc = document.getElementById('f-rnc') ? document.getElementById('f-rnc').value : '';
-        const tipoTexto = tipoFactura === 'B01' ? 'VALOR FISCAL' : 'CONSUMIDOR FINAL';
-
-        let html = `
-          <div class="text-center mb-3">
-              <h5 class="fw-bold glam-font text-pink fs-3">Glam Beauty Salon</h5>
-              <small>RNC: 101-55588-2 | Tel: 809-555-0199</small><br>
-              <small class="fw-bold text-dark mt-1 border border-dark px-2 py-1 d-inline-block rounded" style="font-size:10px;">FACTURA PARA ${tipoTexto}</small>
-          </div>
-          <div class="small d-flex justify-content-between mb-1 fw-bold">
-              <span>CLIENTE:</span><span class="text-uppercase">${document.getElementById('f-name').value || 'CONTADO'}</span>
-          </div>`;
-          
-          if (tipoFactura === 'B01' && rnc) {
-              html += `<div class="small d-flex justify-content-between mb-2 fw-bold text-danger"><span>RNC/CÉDULA:</span><span>${rnc}</span></div>`;
-          }
-          
-        html += `<hr style="border-top: 1px dashed #ccc;">`;
-          
-        STATE.cart.forEach(i => { 
-            html += `<div class="d-flex justify-content-between small mb-1 text-muted"><span>1x ${i.name.substring(0,18)}</span><span>${parseFloat(i.price).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`; 
-        });
-        
-        if(del > 0) { 
-            html += `<div class="d-flex justify-content-between small mb-1 text-muted"><span>Envío</span><span>250.00</span></div>`; 
-        }
-        
-        html += `
-          <hr style="border-top: 1px dashed #ccc;">
-          <div class="d-flex justify-content-between small mb-1"><span>SUBTOTAL:</span><span>RD$ ${sub.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
-          <div class="d-flex justify-content-between small mb-1"><span>ITBIS (18%):</span><span>RD$ ${itbis.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`;
-          
-        if(tip > 0) { 
-            html += `<div class="d-flex justify-content-between small mb-1 text-success"><span>PROPINA STAFF:</span><span>RD$ ${tip.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>`; 
-        }
-        
-        html += `
-          <div class="d-flex justify-content-between fw-900 fs-5 mt-3 border-top pt-2"><span>TOTAL:</span><span>RD$ ${total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
-          <div class="mt-4 text-center"><svg id="barcode-preview"></svg></div>`;
-          
-        document.getElementById('invoice-render').innerHTML = html;
-        
-        try { 
-            JsBarcode("#barcode-preview", "PRE-"+Date.now().toString().slice(-6), { format: "CODE128", width: 1.5, height: 35, displayValue: false, lineColor: "#FF1493" }); 
-        } catch(e){}
-    }
-
-    /* ==========================================================================
-       CHECKOUT Y VENTAS: FIREBASE + FORMSPREE
-       ========================================================================== */
+    /* --- CHECKOUT Y VENTAS: FIREBASE + FORMSPREE --- */
     window.finalizeTransaction = async function() {
         const mode = document.getElementById('pay-mode') ? document.getElementById('pay-mode').value : 'Efectivo';
         const clientName = (document.getElementById('f-name') && document.getElementById('f-name').value.trim() !== '') ? document.getElementById('f-name').value.trim() : "CONSUMIDOR FINAL";
-        
-        const tipoFactura = document.getElementById('f-tipo') ? document.getElementById('f-tipo').value : 'B02';
-        const rnc = document.getElementById('f-rnc') ? document.getElementById('f-rnc').value.trim() : '';
+        const tipoFactura = document.getElementById('f-tipo') ? document.getElementById('f-tipo').value : 'B02'; const rnc = document.getElementById('f-rnc') ? document.getElementById('f-rnc').value.trim() : '';
 
-        if (tipoFactura === 'B01' && !rnc) {
-            return Swal.fire('Error', 'Debe ingresar el RNC o Cédula para generar la factura con Valor Fiscal.', 'error');
-        }
+        if (tipoFactura === 'B01' && !rnc) return Swal.fire('Error', 'RNC Requerido', 'error');
+        if (mode === 'Tarjeta') { const num = document.getElementById('card-num').value.replace(/\s/g, ''); const exp = document.getElementById('card-exp-input').value; if (num.length !== 16 || isNaN(num) || !exp.includes('/')) return Swal.fire('Error', 'Tarjeta Inválida', 'error'); }
         
-        if (mode === 'Tarjeta') { 
-            const num = document.getElementById('card-num').value.replace(/\s/g, ''); 
-            const exp = document.getElementById('card-exp-input').value; 
-            
-            if (num.length !== 16 || isNaN(num)) return Swal.fire('Error', '16 números requeridos.', 'error'); 
-            if (!exp.includes('/')) return Swal.fire('Error', 'Formato MM/AA.', 'error'); 
-            
-            const [mes, ano] = exp.split('/'); 
-            if (parseInt(ano) < 26 || (parseInt(ano) === 26 && parseInt(mes) < 3)) return Swal.fire('Error', 'Tarjeta expirada.', 'error'); 
-        }
-        
-        let sub = 0; 
-        STATE.cart.forEach(i => sub += parseFloat(i.price) || 0);
-        
-        const delCheck = document.getElementById('delivery-check'); 
-        const del = (delCheck && delCheck.checked) ? 250 : 0; 
-        
-        const tipInput = document.getElementById('f-tip'); 
-        const tip = tipInput ? (parseFloat(tipInput.value) || 0) : 0;
-        
-        const totalNum = (sub * 1.18) + del + tip; 
-        const ncf = tipoFactura + Math.floor(Math.random()*90000000 + 10000000);
-        
-        const saleRecord = { 
-            id: Date.now(), 
-            ncf: ncf, 
-            tipoFactura: tipoFactura,
-            rnc: rnc,
-            client: clientName, 
-            total: totalNum.toFixed(2), 
-            method: mode, 
-            time: new Date().toLocaleTimeString(), 
-            date: new Date().toLocaleDateString(), 
-            cart: JSON.parse(JSON.stringify(STATE.cart)), 
-            logistics: del, 
-            tip: tip 
-        };
+        let sub = 0; STATE.cart.forEach(i => sub += parseFloat(i.price) || 0); const delCheck = document.getElementById('delivery-check'); const del = (delCheck && delCheck.checked) ? 250 : 0; const tipInput = document.getElementById('f-tip'); const tip = tipInput ? (parseFloat(tipInput.value) || 0) : 0;
+        const totalNum = (sub * 1.18) + del + tip; const ncf = tipoFactura + Math.floor(Math.random()*90000000 + 10000000);
+        const saleRecord = { id: Date.now(), ncf: ncf, tipoFactura: tipoFactura, rnc: rnc, client: clientName, total: totalNum.toFixed(2), method: mode, time: new Date().toLocaleTimeString(), date: new Date().toLocaleDateString(), cart: JSON.parse(JSON.stringify(STATE.cart)), logistics: del, tip: tip };
 
-        Swal.fire({
-            title: 'Procesando pago y actualizando sistema...',
-            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>',
-            allowOutsideClick: false,
-            showConfirmButton: false
-        });
+        Swal.fire({ title: 'Procesando pago...', html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>', allowOutsideClick: false, showConfirmButton: false });
 
         try {
-            // 1. REGISTRO EN LA NUBE (NUEVA VENTA)
-            const paqueteVenta = {
-                fields: {
-                    ncf: { stringValue: saleRecord.ncf },
-                    cliente: { stringValue: saleRecord.client },
-                    total: { stringValue: saleRecord.total },
-                    metodo: { stringValue: saleRecord.method },
-                    fecha: { stringValue: saleRecord.date },
-                    hora: { stringValue: saleRecord.time }
-                }
-            };
-            const urlVenta = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/venta?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-            await fetch(urlVenta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(paqueteVenta) });
+            const paqueteVenta = { fields: { ncf: { stringValue: saleRecord.ncf }, cliente: { stringValue: saleRecord.client }, total: { stringValue: saleRecord.total }, metodo: { stringValue: saleRecord.method }, fecha: { stringValue: saleRecord.date }, hora: { stringValue: saleRecord.time } } };
+            await fetch("https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/venta?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q", { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(paqueteVenta) });
 
-            // 2. ACTUALIZACIÓN DE INVENTARIO (DESCUENTO EN LA NUBE Y LOCAL)
             for (let i = 0; i < STATE.cart.length; i++) {
-                const cItem = STATE.cart[i];
-                const dbItem = STATE.inventory.find(inv => inv.id === cItem.id);
-                
+                const dbItem = STATE.inventory.find(inv => inv.id === STATE.cart[i].id);
                 if(dbItem && dbItem.stock > 0) {
-                    const nuevoStock = dbItem.stock - 1;
-                    dbItem.stock = nuevoStock; // Se actualiza visualmente
-                    
-                    if(dbItem.firebaseId) {
-                        const urlStock = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${dbItem.firebaseId}?updateMask.fieldPaths=cantidad&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-                        await fetch(urlStock, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ fields: { cantidad: { stringValue: nuevoStock.toString() } } })
-                        });
-                    }
+                    const nuevoStock = dbItem.stock - 1; dbItem.stock = nuevoStock; 
+                    if(dbItem.firebaseId) { await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${dbItem.firebaseId}?updateMask.fieldPaths=cantidad&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { cantidad: { stringValue: nuevoStock.toString() } } }) }); }
                 }
             }
 
-            // 3. TU SISTEMA DE ENVÍO DE CORREOS (FORMSPREE INTACTO)
-            if (STATE.currentUser && STATE.currentUser.email) {
-                const listadoArticulos = STATE.cart.map(item => item.name).join(', ');
+            const listadoArticulos = STATE.cart.map(item => item.name).join(', ');
+            const correoCliente = (STATE.currentUser && STATE.currentUser.email) ? STATE.currentUser.email : "Mostrador";
+            fetch("https://formspree.io/f/xkopberl", { method: "POST", headers: { "Accept": "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ Asunto: "NUEVA COMPRA", Cliente_Correo: correoCliente, Factura: ncf, Total_Pagado: "RD$ " + totalNum.toFixed(2), Articulos_Comprados: listadoArticulos, Metodo_Pago: mode }) }).catch(e=>{});
 
-                fetch("https://formspree.io/f/xkopberl", {
-                    method: "POST",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        Asunto: "NUEVA COMPRA - GLAM BOUTIQUE",
-                        Cliente_Correo: STATE.currentUser.email,
-                        Cliente_Nombre: clientName,
-                        Factura: ncf,
-                        Total_Pagado: "RD$ " + totalNum.toFixed(2),
-                        Articulos_Comprados: listadoArticulos,
-                        Metodo_Pago: mode
-                    })
-                }).catch(err => console.log("Error enviando factura: ", err));
-            }
+            STATE.sales.push(saleRecord); STATE.caja += totalNum; STATE.cart = []; save(); 
+            const modalEl = document.getElementById('payModal'); if (typeof bootstrap !== 'undefined') { const m = bootstrap.Modal.getInstance(modalEl); if(m) m.hide(); }
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove()); document.body.classList.remove('modal-open'); document.body.style = '';
 
-            // 4. LIMPIEZA FINAL Y PDF
-            STATE.sales.push(saleRecord); 
-            STATE.caja += totalNum; 
-            STATE.cart = []; 
-            save(); 
-            
-            const modalEl = document.getElementById('payModal'); 
-            if (typeof bootstrap !== 'undefined') { 
-                const m = bootstrap.Modal.getInstance(modalEl); 
-                if(m) m.hide(); 
-            }
-            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove()); 
-            document.body.classList.remove('modal-open'); 
-            document.body.style = '';
-
-            setTimeout(() => { 
-                try { generateProfessionalPDF(saleRecord); } catch(err) {} 
-                
-                Swal.fire('¡PAGO EXITOSO!', `Comprobante: ${ncf}`, 'success').then(() => { 
-                    updateCart(); 
-                    filterShop('all'); 
-                    if (STATE.currentUser && STATE.currentUser.role === 'admin') { 
-                        window.renderAdmin(); 
-                        if (typeof filterInventory === "function") filterInventory(); // Refresca inventario del admin
-                    }
-                }); 
-            }, 1000);
-
-        } catch (error) {
-            console.error(error);
-            Swal.fire('Error', 'Problema conectando al servidor. ' + error.message, 'error');
-        }
-    };
-    function generateProfessionalPDF(s) {
-        const { jsPDF } = window.jspdf; 
-        const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
-        
-        const tipoTexto = s.tipoFactura === 'B01' ? 'FACTURA CON VALOR FISCAL' : 'FACTURA PARA CONSUMIDOR FINAL';
-        
-        doc.setFont("courier", "bold"); 
-        doc.setFontSize(11); 
-        doc.text("GLAM BEAUTY SALON VIP", 40, 10, {align:"center"}); 
-        
-        doc.setFont("courier", "normal"); 
-        doc.setFontSize(7); 
-        doc.text("RNC: 101-55588-2 | Av. Empresarial #10", 40, 14, {align:"center"}); 
-        doc.text(tipoTexto, 40, 18, {align:"center"}); 
-        doc.text("------------------------------------------", 40, 22, {align:"center"}); 
-        
-        doc.setFontSize(8); 
-        doc.text(`NCF: ${s.ncf}`, 5, 28); 
-        doc.text(`FECHA: ${s.date} ${s.time}`, 5, 32); 
-        doc.text(`CLIENTE: ${s.client.toUpperCase()}`, 5, 36); 
-        
-        let y = 0;
-        if (s.tipoFactura === 'B01' && s.rnc) {
-            doc.text(`RNC/CED: ${s.rnc}`, 5, 40);
-            doc.text(`METODO: ${s.method.toUpperCase()}`, 5, 44); 
-            doc.text("------------------------------------------", 40, 48, {align:"center"}); 
-            doc.setFontSize(7); 
-            doc.text("CANT DESCRIPCION", 5, 52); 
-            doc.text("VALOR", 75, 52, {align:"right"}); 
-            doc.text("------------------------------------------", 40, 55, {align:"center"});
-            y = 59;
-        } else {
-            doc.text(`METODO: ${s.method.toUpperCase()}`, 5, 40); 
-            doc.text("------------------------------------------", 40, 44, {align:"center"}); 
-            doc.setFontSize(7); 
-            doc.text("CANT DESCRIPCION", 5, 48); 
-            doc.text("VALOR", 75, 48, {align:"right"}); 
-            doc.text("------------------------------------------", 40, 51, {align:"center"});
-            y = 55;
-        }
-        
-        let subtotal = 0; 
-        s.cart.forEach(item => { 
-            doc.text(`1 x ${item.name.substring(0,18)}`, 5, y); 
-            doc.text(`${parseFloat(item.price).toFixed(2)}`, 75, y, {align:"right"}); 
-            subtotal += parseFloat(item.price); 
-            y += 4; 
-        });
-        
-        if(s.logistics && s.logistics > 0) { 
-            doc.text(`1 x CARGO POR ENVIO`, 5, y); 
-            doc.text(`250.00`, 75, y, {align:"right"}); 
-            subtotal += 250; 
-            y += 4; 
-        } 
-        
-        doc.text("------------------------------------------", 40, y + 2, {align:"center"}); 
-        
-        const itbis = subtotal * 0.18; 
-        doc.text(`SUBTOTAL:`, 40, y + 7); 
-        doc.text(`${subtotal.toFixed(2)}`, 75, y + 7, {align:"right"}); 
-        doc.text(`ITBIS 18%:`, 40, y + 11); 
-        doc.text(`${itbis.toFixed(2)}`, 75, y + 11, {align:"right"}); 
-        
-        if(s.tip && s.tip > 0) { 
-            doc.text(`PROPINA:`, 40, y + 15); 
-            doc.text(`${parseFloat(s.tip).toFixed(2)}`, 75, y + 15, {align:"right"}); 
-            y += 4; 
-        } 
-        
-        doc.setFont("courier", "bold"); 
-        doc.setFontSize(9); 
-        doc.text(`TOTAL RD$: ${s.total}`, 75, y + 18, {align:"right"});
-        
-        try { 
-            const canvas = document.createElement('canvas'); 
-            JsBarcode(canvas, s.ncf, { format: "CODE128", displayValue: false, width: 2, height: 40 }); 
-            doc.addImage(canvas.toDataURL('image/png'), 'PNG', 10, y + 24, 60, 12); 
-        } catch(err) {} 
-        
-        doc.setFont("courier", "normal"); 
-        doc.setFontSize(6); 
-        doc.text("GRACIAS POR SU COMPRA", 40, y + 42, {align:"center"}); 
-        doc.save(`Factura_${s.ncf}.pdf`);
-    }
-
-    /* ==========================================================================
-       13. CHATBOT GLAM-IA
-       ========================================================================== */
-    function toggleChat() { 
-        document.getElementById('chatbot-window').classList.toggle('hidden-chat'); 
-    }
-    
-    function handleChatEnter(e) { 
-        if (e.key === 'Enter') { 
-            sendChatMessage(); 
-        } 
-    }
-
-    function sendChatMessage() {
-        const input = document.getElementById('chat-input'); 
-        const text = input.value.trim(); 
-        if (!text) return;
-        
-        const chatBody = document.getElementById('chat-body');
-        chatBody.innerHTML += `<div class="chat-msg msg-user animate__animated animate__fadeInUp">${text}</div>`;
-        input.value = ''; 
-        chatBody.scrollTop = chatBody.scrollHeight;
-        
-        setTimeout(() => {
-            const botResponse = getBotResponse(text.toLowerCase());
-            chatBody.innerHTML += `<div class="chat-msg msg-bot animate__animated animate__fadeInUp">${botResponse}</div>`;
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }, 800);
-    }
-
-    function getBotResponse(text) {
-        if (text.includes('hola') || text.includes('saludos') || text.includes('buenas')) return "¡Hola belleza! Bienvenida a Glam Boutique. ¿Buscas agendar una cita o comprar productos?";
-        if (text.includes('horario') || text.includes('hora') || text.includes('abierto')) return "Trabajamos de Lunes a Sábado de 9:00 AM a 7:00 PM. ¡Te esperamos!";
-        if (text.includes('ubicacion') || text.includes('direccion') || text.includes('donde estan')) return "Estamos ubicados en la Av. Empresarial #10, Santo Domingo, DN. Frente a la plaza principal.";
-        if (text.includes('cita') || text.includes('agendar') || text.includes('turno')) return "¡Claro! Puedes agendar tu cita fácilmente cerrando este chat y usando el Menú de Salón que está a tu derecha en la pantalla principal.";
-        if (text.includes('precio') || text.includes('cuanto cuesta') || text.includes('costo')) return "Los precios varían según el servicio o producto. Te invito a explorar nuestra Boutique en pantalla.";
-        return "Hmmm, no estoy 100% segura de esa respuesta 😅. Pero no te preocupes, puedes llamar o escribir por WhatsApp directamente a recepción al <b>809-555-0199</b> y una persona de nuestro equipo te ayudará de inmediato.";
-    }
-
-    /* ==========================================================================
-       14. ARRANQUE INICIAL DEL SISTEMA
-       ========================================================================== */
-    window.onload = () => { 
-        updateNavMenu();
-        if (STATE.currentUser) {
-            document.getElementById('nav-user-name').innerText = STATE.currentUser.name.split(' ')[0].toUpperCase();
-            if (STATE.currentUser.role === 'admin') { 
-                showAdminDashboard(); 
-            } else { 
-                showLandingPage(); 
-            }
-        } else {
-            showLandingPage();
-        }
+            setTimeout(() => { try { window.generateProfessionalPDF(saleRecord); } catch(err) {} Swal.fire('¡PAGO EXITOSO!', `Comprobante: ${ncf}`, 'success').then(() => { window.updateCart(); window.filterShop('all'); if (STATE.currentUser && STATE.currentUser.role === 'admin') { window.renderAdmin(); window.filterInventory(); } }); }, 1000);
+        } catch (error) { Swal.fire('Error', 'Fallo conexión.', 'error'); }
     };
 
-            /* ==========================================================================
-       14. ARRANQUE INICIAL DEL SISTEMA
+    window.generateProfessionalPDF = function(s) {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
+        doc.setFont("courier", "bold"); doc.setFontSize(11); doc.text("GLAM VIP", 40, 10, {align:"center"}); doc.setFontSize(7); doc.text("RNC: 101-55588-2", 40, 14, {align:"center"}); doc.text("------------------------------------------", 40, 22, {align:"center"}); doc.setFontSize(8); doc.text(`NCF: ${s.ncf}`, 5, 28); doc.text(`CLIENTE: ${s.client.toUpperCase()}`, 5, 36); 
+        let y = 55; let subtotal = 0; s.cart.forEach(item => { doc.text(`1 x ${item.name.substring(0,18)}`, 5, y); doc.text(`${parseFloat(item.price).toFixed(2)}`, 75, y, {align:"right"}); subtotal += parseFloat(item.price); y += 4; });
+        const itbis = subtotal * 0.18; doc.text(`SUBTOTAL:`, 40, y + 7); doc.text(`${subtotal.toFixed(2)}`, 75, y + 7, {align:"right"}); doc.text(`ITBIS:`, 40, y + 11); doc.text(`${itbis.toFixed(2)}`, 75, y + 11, {align:"right"}); doc.setFontSize(9); doc.text(`TOTAL RD$: ${s.total}`, 75, y + 18, {align:"right"}); doc.save(`Factura_${s.ncf}.pdf`);
+    };
+
+    /* ==========================================================================
+       9. CHATBOT Y CARGA INICIAL
        ========================================================================== */
+    window.toggleChat = function() { document.getElementById('chatbot-window').classList.toggle('hidden-chat'); };
+    window.handleChatEnter = function(e) { if (e.key === 'Enter') window.sendChatMessage(); };
+    window.sendChatMessage = function() {
+        const input = document.getElementById('chat-input'); const text = input.value.trim(); if (!text) return;
+        const chatBody = document.getElementById('chat-body'); chatBody.innerHTML += `<div class="chat-msg msg-user animate__animated animate__fadeInUp">${text}</div>`; input.value = ''; chatBody.scrollTop = chatBody.scrollHeight;
+        setTimeout(() => { chatBody.innerHTML += `<div class="chat-msg msg-bot animate__animated animate__fadeInUp">¡Hola! Recepción: 809-555-0199.</div>`; chatBody.scrollTop = chatBody.scrollHeight; }, 800);
+    };
+
+    window.cargarTodoDesdeNube = async function() {
+        try {
+            const key = "?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q"; const baseUrl = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/";
+
+            const resProd = await fetch(baseUrl + "producto" + key); const dataProd = await resProd.json();
+            if (dataProd.documents) { STATE.inventory = dataProd.documents.map((doc, index) => { const c = doc.fields; return { id: 5000 + index, firebaseId: doc.name.split('/').pop(), name: c.nombre?.stringValue || "Prod", price: Number(c.precio?.stringValue || 0), stock: Number(c.cantidad?.stringValue || 0), maxStock: Number(c.maxStock?.stringValue || 50), cat: c.categoria?.stringValue || "General", img: c.img?.stringValue || "" }; }); }
+
+            const resCitas = await fetch(baseUrl + "cita" + key); const dataCitas = await resCitas.json();
+            if (dataCitas.documents) { STATE.appts = dataCitas.documents.map(doc => { const c = doc.fields; return { id: doc.name.split('/').pop(), ticket: c.ticket?.stringValue || "", stylist: c.estilista?.stringValue || "", date: c.fecha?.stringValue || "", time: c.hora?.stringValue || "", email: c.cliente_email?.stringValue || "" }; }); }
+
+            const resStaff = await fetch(baseUrl + "staff" + key); const dataStaff = await resStaff.json();
+            if (dataStaff.documents) { STATE.staff = dataStaff.documents.map(doc => { const c = doc.fields; const fId = doc.name.split('/').pop(); return { id: fId, empId: "EMP-" + fId.substring(0,3), name: c.nombre?.stringValue || "", specialty: c.especialidad?.stringValue || "", commission: Number(c.comision?.stringValue || 20), img: c.img?.stringValue || "", status: c.status?.stringValue || 'Offline', clockInTime: null, salesTotal: 0 }; }); }
+
+            save(); if (typeof window.filterShop === "function") window.filterShop('all'); if (typeof window.filterInventory === "function") window.filterInventory(); if (typeof window.renderAdmin === "function") window.renderAdmin(); if (typeof window.renderClient === "function") window.renderClient();
+        } catch (error) { console.error("Error nube:", error); }
+    };
+
     window.onload = () => { 
-        updateNavMenu();
-        if (STATE.currentUser) {
-            document.getElementById('nav-user-name').innerText = STATE.currentUser.name.split(' ')[0].toUpperCase();
-            if (STATE.currentUser.role === 'admin') { 
-                showAdminDashboard(); 
-            } else { 
-                showLandingPage(); 
-            }
-        } else {
-            showLandingPage();
-        }
+        updateNavMenu(); 
+        if (STATE.currentUser) { 
+            document.getElementById('nav-user-name').innerText = STATE.currentUser.name.split(' ')[0].toUpperCase(); 
+            if (STATE.currentUser.role === 'admin') showAdminDashboard(); else showLandingPage(); 
+        } else { showLandingPage(); } 
+        window.cargarTodoDesdeNube();
     };
 
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-/* ==========================================================================
-       NUEVO STAFF - FUNCIÓN GLOBAL BLINDADA
-       ========================================================================== */
-    window.addNewStaff = async function() {
-        const { value: formValues } = await Swal.fire({ 
-            title: 'NUEVO ESPECIALISTA VIP', 
-            html: `
-            <div class="text-start">
-                <label class="small fw-bold">Foto del Profesional:</label>
-                <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
-                
-                <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
-                <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
-                
-                <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
-                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
-                
-                <label class="small fw-bold text-pink">Comisión (%)</label>
-                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
-            </div>`, 
-            showCancelButton: true, 
-            confirmButtonColor: '#FF1493',
-            confirmButtonText: 'Guardar en Firebase ☁️', 
-            preConfirm: async () => { 
-                const name = document.getElementById('ns-name').value.trim(); 
-                const spec = document.getElementById('ns-spec').value.trim(); 
-                const comm = document.getElementById('ns-comm').value || "20";
-                const file = document.getElementById('ns-file').files[0]; 
-                
-                if (!name || !spec) { 
-                    Swal.showValidationMessage('El nombre y la especialidad son obligatorios'); 
-                    return false; 
-                } 
-                
-                let finalImg = 'https://via.placeholder.com/150'; 
-                if (file) { 
-                    try { 
-                        Swal.showLoading();
-                        // Asumimos que comprimirYConvertirABase64 existe en tu código (lo vi en tu archivo)
-                        finalImg = await comprimirYConvertirABase64(file, 300); 
-                    } catch(e) { console.log("Error al procesar la imagen"); } 
-                } 
-                return { name, spec, comm, img: finalImg }; 
-            } 
-        });
-        
-        if (formValues) { 
-            Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-
-            try {
-                // Paquete estructurado para Firebase
-                const paqueteStaff = {
-                    fields: {
-                        nombre: { stringValue: formValues.name },
-                        especialidad: { stringValue: formValues.spec },
-                        comision: { stringValue: formValues.comm.toString() },
-                        img: { stringValue: formValues.img },
-                        status: { stringValue: "Offline" }
-                    }
-                };
-
-                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-                
-                const respuesta = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paqueteStaff)
-                });
-
-                if (respuesta.ok) {
-                    Swal.fire('¡Éxito!', 'El nuevo especialista ha sido guardado.', 'success');
-                    // Refrescamos llamando a la nube
-                    if (typeof cargarTodoDesdeNube === "function") {
-                        cargarTodoDesdeNube(); 
-                    } else {
-                        setTimeout(() => location.reload(), 1000);
-                    }
-                } else {
-                    throw new Error("El servidor de Google rechazó los datos.");
-                }
-            } catch (e) {
-                Swal.fire('Error', 'No se pudo guardar: ' + e.message, 'error');
-            }
-        }
-    };
-    async function cargarTodoDesdeNube() {
-        try {
-            const key = "?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-            const baseUrl = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/";
-
-            // --- A. CARGAR PRODUCTOS ---
-            const resProd = await fetch(baseUrl + "producto" + key);
-            const dataProd = await resProd.json();
-            if (dataProd.documents) {
-                STATE.inventory = dataProd.documents.map((doc, index) => {
-                    const c = doc.fields;
-                    return {
-                        id: 5000 + index,
-                        firebaseId: doc.name.split('/').pop(),
-                        name: c.nombre?.stringValue || "Producto",
-                        price: Number(c.precio?.stringValue || 0),
-                        stock: Number(c.cantidad?.stringValue || 0),
-                        maxStock: Number(c.maxStock?.stringValue || 50),
-                        cat: c.categoria?.stringValue || "General",
-                        img: c.img?.stringValue || "https://via.placeholder.com/150"
-                    };
-                });
-            }
-
-            // --- B. CARGAR CITAS ---
-            const resCitas = await fetch(baseUrl + "cita" + key);
-            const dataCitas = await resCitas.json();
-            if (dataCitas.documents) {
-                STATE.appts = dataCitas.documents.map(doc => {
-                    const c = doc.fields;
-                    return {
-                        id: doc.name.split('/').pop(),
-                        ticket: c.ticket?.stringValue || "N/A",
-                        stylist: c.estilista?.stringValue || "Cualquiera",
-                        date: c.fecha?.stringValue || "",
-                        time: c.hora?.stringValue || "",
-                        email: c.cliente_email?.stringValue || ""
-                    };
-                });
-            }
-
-            // --- C. CARGAR STAFF (PERSONAL) ---
-            const resStaff = await fetch(baseUrl + "staff" + key);
-            const dataStaff = await resStaff.json();
-            if (dataStaff.documents) {
-                STATE.staff = dataStaff.documents.map(doc => {
-                    const c = doc.fields;
-                    return {
-                        id: doc.name.split('/').pop(),
-                        empId: "EMP-" + doc.name.split('/').pop().substring(0,3),
-                        name: c.nombre?.stringValue || "Sin Nombre",
-                        specialty: c.especialidad?.stringValue || "General",
-                        commission: Number(c.comision?.stringValue || 20),
-                        img: c.img?.stringValue || "https://via.placeholder.com/150",
-                        status: c.status?.stringValue || 'Offline',
-                        clockInTime: null,
-                        salesTotal: 0
-                    };
-                });
-            }
-
-            // REFRESCAR TODO EL WEBSITE
-            save();
-            if (typeof filterShop === "function") filterShop('all');
-            if (typeof filterInventory === "function") filterInventory();
-            if (typeof renderAdmin === "function") renderAdmin();
-            if (typeof renderClient === "function") renderClient();
-            console.log("¡Sincronización Total: Productos, Citas y Personal listos!");
-
-        } catch (error) {
-            console.error("Error sincronizando:", error);
-        }
-    }
-
-    // Arrancamos la carga masiva
-    cargarTodoDesdeNube();
-    </script>
+</body>
+</html>
