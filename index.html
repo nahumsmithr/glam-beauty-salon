@@ -1804,7 +1804,7 @@
         renderAdmin(); 
     }
   
-    async function addNewStaff() {
+   async function addNewStaff() {
         const { value: formValues } = await Swal.fire({ 
             title: 'NUEVO ESPECIALISTA VIP', 
             html: `
@@ -1818,20 +1818,19 @@
                 <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
                 <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
                 
-                <label class="small fw-bold text-pink">Comisión por Servicio (%)</label>
+                <label class="small fw-bold text-pink">Comisión (%)</label>
                 <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
             </div>`, 
-            focusConfirm: false, 
             showCancelButton: true, 
-            confirmButtonText: 'Guardar en la Nube ☁️', 
+            confirmButtonText: 'Guardar en Google ☁️', 
             preConfirm: async () => { 
                 const name = document.getElementById('ns-name').value.trim(); 
                 const spec = document.getElementById('ns-spec').value.trim(); 
-                const comm = parseFloat(document.getElementById('ns-comm').value) || 0;
+                const comm = document.getElementById('ns-comm').value || "20";
                 const file = document.getElementById('ns-file').files[0]; 
                 
                 if (!name || !spec) { 
-                    Swal.showValidationMessage('Nombre y Especialidad son obligatorios'); 
+                    Swal.showValidationMessage('Nombre y Especialidad obligatorios'); 
                     return false; 
                 } 
                 
@@ -1839,20 +1838,20 @@
                 if (file) { 
                     try { 
                         Swal.showLoading();
-                        // Usamos la función de comprimir que ya tenemos
+                        // Importante: Asegúrate de que la función comprimirYConvertirABase64 existe en tu código
                         finalImg = await comprimirYConvertirABase64(file, 300); 
-                    } catch(e) { console.error("Error en foto staff"); } 
+                    } catch(e) { console.log("Error foto"); } 
                 } 
                 return { name, spec, comm, img: finalImg }; 
             } 
         });
         
         if (formValues) { 
-            Swal.fire({ title: 'Registrando en Google...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
             try {
-                // Preparamos el paquete para la colección "staff"
-                const datosStaff = {
+                // Preparamos los campos EXACTOS para Firebase
+                const paqueteStaff = {
                     fields: {
                         nombre: { stringValue: formValues.name },
                         especialidad: { stringValue: formValues.spec },
@@ -1862,35 +1861,26 @@
                     }
                 };
 
+                // URL con tu API KEY
                 const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
                 
                 const respuesta = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(datosStaff)
+                    body: JSON.stringify(paqueteStaff)
                 });
 
                 if (respuesta.ok) {
-                    const data = await respuesta.json();
-                    // Agregamos localmente para ver el cambio inmediato
-                    STATE.staff.push({ 
-                        id: data.name.split('/').pop(), 
-                        empId: "EMP-" + Math.floor(Math.random() * 9000), 
-                        name: formValues.name, 
-                        specialty: formValues.spec, 
-                        commission: formValues.comm, 
-                        img: formValues.img, 
-                        status: 'Offline', 
-                        clockInTime: null, 
-                        salesTotal: 0 
-                    }); 
-                    save(); 
-                    renderAdmin(); 
-                    renderClient(); // Para que aparezca en la lista de citas
-                    Swal.fire('¡Éxito!', 'Especialista agregado a la nube.', 'success'); 
+                    Swal.fire('¡Logrado!', 'Personal guardado en la nube.', 'success');
+                    // Recargamos todo para que aparezca el nuevo staff bajado de la nube
+                    cargarTodoDesdeNube(); 
+                } else {
+                    const err = await respuesta.json();
+                    console.log("Error Firebase:", err);
+                    throw new Error("Respuesta de Google no fue OK");
                 }
             } catch (e) {
-                Swal.fire('Error', 'No se pudo guardar el personal.', 'error');
+                Swal.fire('Error', 'No subió: ' + e.message, 'error');
             }
         }
     }
