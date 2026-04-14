@@ -3161,11 +3161,11 @@
 
     // Arrancamos la carga masiva
     cargarTodoDesdeNube();
- // =======================================================================
-// 🚀 SOLUCIÓN DEFINITIVA GLAM OS: COMPRESIÓN + BASE DE DATOS
+    // =======================================================================
+// 🚀 SOLUCIÓN DEFINITIVA GLAM OS: INVENTARIO + COMPRESIÓN + FIREBASE
 // =======================================================================
 
-// 1. EL MOTOR DE COMPRESIÓN (Garantizado que lo encuentre)
+// 1. EL MOTOR DE COMPRESIÓN DE IMÁGENES
 window.comprimirYConvertirABase64 = function(file, maxDimension) {
     return new Promise((resolve, reject) => {
         if (!file) { reject("No hay archivo"); return; }
@@ -3196,7 +3196,7 @@ window.comprimirYConvertirABase64 = function(file, maxDimension) {
     });
 };
 
-// 2. LA FUNCIÓN DE NUEVO PRODUCTO
+// 2. FUNCIÓN: AGREGAR PRODUCTO
 window.addProduct = async function() {
     const fechaHoy = new Date().toISOString().split('T')[0];
 
@@ -3298,7 +3298,6 @@ window.addProduct = async function() {
             if (file) { 
                 try { 
                     Swal.showLoading(); 
-                    // AQUÍ LLAMA AL MOTOR QUE ESTÁ ARRIBA
                     imgBase64 = await window.comprimirYConvertirABase64(file, 400); 
                 } catch(e) {
                     Swal.showValidationMessage("Error interno al comprimir la foto: " + e);
@@ -3373,6 +3372,47 @@ window.addProduct = async function() {
                 throw new Error("Rechazado por Firebase.");
             }
         } catch(e) {
+            Swal.fire({title: 'Error', text: e.message, icon: 'error', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
+        }
+    }
+};
+
+// 3. FUNCIÓN: ELIMINAR PRODUCTO
+window.deleteProduct = async function(firebaseId) {
+    const confirm = await Swal.fire({
+        title: '¿Eliminar producto?',
+        text: "Desaparecerá de la nube y del inventario.",
+        icon: 'warning',
+        background: '#1e1e2d', color: '#ffffff',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash"></i> Sí, borrar'
+    });
+
+    if (confirm.isConfirmed) {
+        try {
+            Swal.fire({
+                title: 'Borrando...',
+                html: '<i class="fas fa-spinner fa-spin fa-2x text-danger"></i>',
+                background: '#1e1e2d', color: '#ffffff',
+                allowOutsideClick: false, showConfirmButton: false
+            });
+
+            const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${firebaseId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+            const respuesta = await fetch(url, { method: 'DELETE' });
+
+            if (respuesta.ok) {
+                STATE.inventory = STATE.inventory.filter(prod => prod.firebaseId !== firebaseId);
+                if (typeof save === "function") save();
+                if (typeof filterInventory === "function") filterInventory(); 
+                if (typeof filterShop === "function") filterShop('all'); 
+                
+                Swal.fire({title: '¡Eliminado!', text: 'Borrado de Firebase con éxito.', icon: 'success', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
+            } else {
+                throw new Error("Fallo al eliminar en la nube.");
+            }
+        } catch (e) {
             Swal.fire({title: 'Error', text: e.message, icon: 'error', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
         }
     }
