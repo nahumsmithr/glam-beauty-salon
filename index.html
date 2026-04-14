@@ -2828,70 +2828,7 @@
             }
         };
 
-    </script>
-
-            <script>
-      async function cargarInventarioDirecto() {
-          try {
-              // Hacemos una llamada directa al servidor de Google sin usar SDKs pesados
-              const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto";
-              const respuesta = await fetch(url);
-              const datos = await respuesta.json();
-
-              if (datos && datos.documents) {
-                  const productosNuevos = [];
-
-                  // Procesamos lo que nos responde Google
-                  datos.documents.forEach(doc => {
-                      // Sacamos el ID
-                      const rutaId = doc.name.split('/');
-                      const idReal = rutaId[rutaId.length - 1];
-                      
-                      const campos = doc.fields || {};
-                      
-                      // Extraemos los valores con cuidado
-                      const nombreProd = campos.nombre ? (campos.nombre.stringValue || "Sin Nombre") : "Producto";
-                      const cantidadProd = campos.cantidad ? (campos.cantidad.stringValue || campos.cantidad.integerValue || "0") : "0";
-                      const precioProd = campos.precio ? (campos.precio.stringValue || campos.precio.integerValue || "0") : "0";
-
-                      productosNuevos.push({
-                          id: idReal,
-                          serial: "FB-" + idReal.substring(0,4),
-                          name: nombreProd,
-                          price: Number(precioProd),
-                          stock: Number(cantidadProd),
-                          maxStock: 50, // Escudo protector para tu admin
-                          cat: "Pelo",
-                          supplier: "Glam Cloud",
-                          supplierContact: "N/A",
-                          supplierCode: "N/A",
-                          img: "https://images.unsplash.com/photo-1584949504125-51d8d814ae3d?w=400"
-                      });
-                  });
-
-                  if (productosNuevos.length > 0) {
-                      // Inyectamos a tu sistema
-                      STATE.inventory = productosNuevos;
-                      
-                      // Refrescamos pantallas de forma segura
-                      if (typeof filterShop === "function") filterShop('all');
-                      if (typeof filterInventory === "function") filterInventory();
-                      
-                      console.log("Inventario cargado exitosamente vía API");
-                  }
-              }
-          } catch (error) {
-              console.error("Error en la conexión directa:", error);
-          }
-      }
-
-      // Arrancamos la lectura sin bloquear tu página
-      cargarInventarioDirecto();
-    </script>
-
-</body>
-</html>
-
+    
 
 
 </body>
