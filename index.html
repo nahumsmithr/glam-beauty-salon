@@ -1571,88 +1571,89 @@
         }
     }
     
-  /* --- AGREGAR NUEVO STAFF A LA NUBE --- */
-    window.addNewStaff = async function() {
-        const { value: formValues } = await Swal.fire({ 
-            title: 'NUEVO ESPECIALISTA VIP', 
-            html: `
-            <div class="text-start">
-                <label class="small fw-bold">Foto del Profesional:</label>
-                <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
-                
-                <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
-                <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
-                
-                <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
-                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
-                
-                <label class="small fw-bold text-pink">Comisión (%)</label>
-                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
-            </div>`, 
-            showCancelButton: true, 
-            confirmButtonColor: '#FF1493',
-            confirmButtonText: 'Guardar en Google ☁️', 
-            preConfirm: async () => { 
-                const name = document.getElementById('ns-name').value.trim(); 
-                const spec = document.getElementById('ns-spec').value.trim(); 
-                const comm = document.getElementById('ns-comm').value || "20";
-                const file = document.getElementById('ns-file').files[0]; 
-                
-                if (!name || !spec) { 
-                    Swal.showValidationMessage('Nombre y Especialidad obligatorios'); 
-                    return false; 
-                } 
-                
-                let finalImg = 'https://via.placeholder.com/150'; 
-                if (file) { 
-                    try { 
-                        Swal.showLoading();
-                        finalImg = await window.comprimirYConvertirABase64(file, 300); 
-                    } catch(e) { console.log("Error foto"); } 
-                } 
-                return { name, spec, comm, img: finalImg }; 
+  /* ==========================================================================
+   NUEVO STAFF - FUNCIÓN GLOBAL BLINDADA (FOTOS CORREGIDAS)
+   ========================================================================== */
+window.addNewStaff = async function() {
+    const { value: formValues } = await Swal.fire({ 
+        title: 'NUEVO ESPECIALISTA VIP', 
+        html: `
+        <div class="text-start">
+            <label class="small fw-bold">Foto del Profesional:</label>
+            <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
+            
+            <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+            <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
+            
+            <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
+            <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
+            
+            <label class="small fw-bold text-pink">Comisión (%)</label>
+            <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
+        </div>`, 
+        showCancelButton: true, 
+        confirmButtonColor: '#FF1493',
+        confirmButtonText: 'Guardar en Firebase ☁️', 
+        preConfirm: async () => { 
+            const name = document.getElementById('ns-name').value.trim(); 
+            const spec = document.getElementById('ns-spec').value.trim(); 
+            const comm = document.getElementById('ns-comm').value || "20";
+            const file = document.getElementById('ns-file').files[0]; 
+            
+            if (!name || !spec) { 
+                Swal.showValidationMessage('El nombre y la especialidad son obligatorios'); 
+                return false; 
             } 
-        });
-        
-        if (formValues) { 
-            Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            
+            let finalImg = 'https://via.placeholder.com/150'; 
+            if (file) { 
+                try { 
+                    Swal.showLoading();
+                    // AQUÍ ESTABA EL ERROR: Le faltaba el "window."
+                    finalImg = await window.comprimirYConvertirABase64(file, 300); 
+                } catch(e) { console.log("Error al procesar la imagen", e); } 
+            } 
+            return { name, spec, comm, img: finalImg }; 
+        } 
+    });
+    
+    if (formValues) { 
+        Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
-            try {
-                const paqueteStaff = {
-                    fields: {
-                        nombre: { stringValue: formValues.name },
-                        especialidad: { stringValue: formValues.spec },
-                        comision: { stringValue: formValues.comm.toString() },
-                        img: { stringValue: formValues.img },
-                        status: { stringValue: "Offline" }
-                    }
-                };
-
-                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-                
-                const respuesta = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paqueteStaff)
-                });
-
-                if (respuesta.ok) {
-                    Swal.fire('¡Logrado!', 'Personal guardado en la nube.', 'success');
-                    if (typeof window.cargarTodoDesdeNube === "function") {
-                        window.cargarTodoDesdeNube(); 
-                    } else {
-                        setTimeout(() => location.reload(), 1500);
-                    }
-                } else {
-                    const errInfo = await respuesta.json();
-                    console.error("Google Cloud dice:", errInfo);
-                    throw new Error("La nube rechazó la petición");
+        try {
+            const paqueteStaff = {
+                fields: {
+                    nombre: { stringValue: formValues.name },
+                    especialidad: { stringValue: formValues.spec },
+                    comision: { stringValue: formValues.comm.toString() },
+                    img: { stringValue: formValues.img },
+                    status: { stringValue: "Offline" }
                 }
-            } catch (e) {
-                Swal.fire('Error', 'No subió: ' + e.message, 'error');
+            };
+
+            const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+            
+            const respuesta = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paqueteStaff)
+            });
+
+            if (respuesta.ok) {
+                Swal.fire('¡Éxito!', 'El nuevo especialista ha sido guardado.', 'success');
+                if (typeof window.cargarTodoDesdeNube === "function") {
+                    window.cargarTodoDesdeNube(); 
+                } else {
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } else {
+                throw new Error("El servidor de Google rechazó los datos.");
             }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo guardar: ' + e.message, 'error');
         }
-    };
+    }
+};
 
     window.openStaffPayments = async function() {
         const { value: formValues } = await Swal.fire({
