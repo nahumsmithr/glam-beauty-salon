@@ -2690,6 +2690,19 @@ window.addNewStaff = async function() {
         
         window.cargarTodoDesdeNube();
     };
+    window.onload = async () => {
+    // Primero intentamos cargar de la nube
+    await cargarTodoDesdeNube();
+    
+    // Luego inicializamos el resto
+    updateNavMenu();
+    if (STATE.currentUser) {
+        if (STATE.currentUser.role === 'admin') showAdminDashboard();
+        else showLandingPage();
+    } else {
+        showLandingPage();
+    }
+};
 </script>
 </body>
 </html>
