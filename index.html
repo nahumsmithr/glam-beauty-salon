@@ -1405,7 +1405,7 @@
         });
     }
 
-    async function addProduct() {
+   async function addProduct() {
         const { value: formValues } = await Swal.fire({
             title: '<i class="fas fa-boxes text-pink me-2"></i>NUEVO PRODUCTO',
             html: `
@@ -1476,7 +1476,7 @@
                   <input type="file" id="np-img-file" class="form-control form-control-sm mb-1" accept="image/*">
               </div>`,
             showCancelButton: true, 
-            confirmButtonText: 'Guardar Producto', 
+            confirmButtonText: 'Subir a la Nube ☁️', 
             width: '550px',
             preConfirm: async () => {
                 const serial = document.getElementById('np-serial').value.trim(); 
@@ -1490,46 +1490,78 @@
                     Swal.showValidationMessage("Llene los campos con asterisco rojo"); 
                     return false; 
                 }
-                if (stock > maxStock) { 
-                    Swal.showValidationMessage(`El stock inicial no puede superar el límite de ${maxStock}`); 
-                    return false; 
-                }
-                const exists = STATE.inventory.find(x => x.serial && x.serial.toLowerCase() === serial.toLowerCase());
-                if (exists) { 
-                    Swal.showValidationMessage("El serial interno ya existe en otro producto"); 
-                    return false; 
-                }
                 
-                let imgUrl = 'https://via.placeholder.com/150'; 
+                let imgUrl = 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'; 
                 if (file) { 
                     try { 
-                        imgUrl = await resizeImage(file); 
+                        imgUrl = await resizeImage(file); // Convertimos la foto a texto Base64
                     } catch(e) {} 
                 }
                 
                 return { 
-                    serial, 
-                    name, 
-                    price, 
-                    stock, 
-                    maxStock, 
+                    serial, name, price, stock, maxStock, 
                     cat: document.getElementById('np-cat').value, 
                     supplier: document.getElementById('np-supplier').value.trim(), 
-                    supplierContact: document.getElementById('np-supp-contact').value.trim(), 
-                    supplierPhone: document.getElementById('np-supp-phone').value.trim(), 
-                    supplierCode: document.getElementById('np-supp-code').value.trim(), 
-                    orderDate: document.getElementById('np-order-date').value, 
-                    expDate: document.getElementById('np-expdate').value, 
                     img: imgUrl 
                 };
             }
         });
         
         if (formValues) { 
-            STATE.inventory.push({ id: Date.now(), ...formValues }); 
-            save(); 
-            filterInventory(); 
-            Swal.fire('Éxito', 'Producto guardado.', 'success'); 
+            // Mostramos mensaje de carga
+            Swal.fire({
+                title: 'Subiendo producto...',
+                html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>',
+                allowOutsideClick: false,
+                showConfirmButton: false
+            });
+
+            try {
+                // Empaquetamos los datos en el idioma que Firebase entiende
+                const datosFirebase = {
+                    fields: {
+                        nombre: { stringValue: formValues.name },
+                        precio: { stringValue: formValues.price.toString() },
+                        cantidad: { stringValue: formValues.stock.toString() },
+                        maxStock: { stringValue: formValues.maxStock.toString() },
+                        categoria: { stringValue: formValues.cat },
+                        serial: { stringValue: formValues.serial },
+                        proveedor: { stringValue: formValues.supplier },
+                        img: { stringValue: formValues.img } // ¡Aquí viaja la foto!
+                    }
+                };
+
+                // Enviamos el cohete a la base de datos
+                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto";
+                const respuesta = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosFirebase)
+                });
+
+                if (respuesta.ok) {
+                    const data = await respuesta.json();
+                    const rutaId = data.name.split('/');
+                    const idRealFirebase = rutaId[rutaId.length - 1];
+
+                    // Lo agregamos a la pantalla de inmediato
+                    STATE.inventory.push({ 
+                        id: 5000 + STATE.inventory.length + 1, 
+                        firebaseId: idRealFirebase,
+                        ...formValues 
+                    }); 
+                    
+                    save(); 
+                    filterInventory(); 
+                    filterShop('all'); // Refresca la boutique
+                    
+                    Swal.fire('¡Subido!', 'Producto guardado en la nube exitosamente.', 'success'); 
+                } else {
+                    throw new Error("No se pudo conectar con Firebase");
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Hubo un problema al subir: ' + e.message, 'error');
+            }
         }
     }
 
