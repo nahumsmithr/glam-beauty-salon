@@ -1299,42 +1299,70 @@
         display.innerText = STATE.calcInput; 
     }
 
-    function addCalcToCash() { 
+   /* --- COBRO TERMINAL POS (CALCULADORA) -> A LA NUBE --- */
+    window.addCalcToCash = async function() { 
         try { 
             const val = parseFloat(eval(STATE.calcInput)); 
             if (isNaN(val) || val <= 0) return Swal.fire('Atención', 'El monto a cobrar debe ser mayor a 0.', 'warning');
             
-            STATE.caja += val; 
-            STATE.calcInput = '0'; 
-            document.getElementById('calc-display').innerText = '0'; 
-            
-            const ncf = "B02" + Math.floor(Math.random() * 90000000 + 10000000); 
-            STATE.sales.push({ 
-                ncf: ncf, 
-                tipoFactura: 'B02', 
-                client: "VENTA DIRECTA CAJA", 
-                total: val.toFixed(2), 
-                method: "Efectivo", 
-                time: new Date().toLocaleTimeString(), 
-                date: new Date().toLocaleDateString(), 
-                cart: [] 
-            }); 
-            
-            save(); 
-            renderAdmin(); 
-            Swal.fire({ 
-                icon: 'success', 
-                title: 'Cobrado', 
-                toast: true, 
-                position: 'top-end', 
-                showConfirmButton: false, 
-                timer: 2000 
-            }); 
-        } catch (e) { 
-            Swal.fire('Error', 'Expresión matemática inválida', 'error'); 
-        } 
-    }
+            Swal.fire({ title: 'Registrando en la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
+            const ncf = "B02" + Math.floor(Math.random() * 90000000 + 10000000); 
+            const fechaStr = new Date().toLocaleDateString();
+            const horaStr = new Date().toLocaleTimeString();
+
+            // 1. Armamos el paquete para Firebase
+            const paqueteVenta = {
+                fields: {
+                    ncf: { stringValue: ncf },
+                    cliente: { stringValue: "VENTA DIRECTA CAJA" },
+                    total: { stringValue: val.toFixed(2) },
+                    metodo: { stringValue: "Efectivo" },
+                    fecha: { stringValue: fechaStr },
+                    hora: { stringValue: horaStr }
+                }
+            };
+
+            const urlVenta = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/venta?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+            
+            // 2. Enviamos el cobro a Google
+            const respuesta = await fetch(urlVenta, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paqueteVenta)
+            });
+
+            if (respuesta.ok) {
+                // 3. Si Google guardó el dinero, actualizamos la pantalla
+                STATE.caja += val; 
+                STATE.calcInput = '0'; 
+                document.getElementById('calc-display').innerText = '0'; 
+                
+                STATE.sales.push({ 
+                    ncf: ncf, 
+                    tipoFactura: 'B02', 
+                    client: "VENTA DIRECTA CAJA", 
+                    total: val.toFixed(2), 
+                    method: "Efectivo", 
+                    time: horaStr, 
+                    date: fechaStr, 
+                    cart: [] 
+                }); 
+                
+                save(); 
+                window.renderAdmin(); 
+                
+                Swal.fire({ 
+                    icon: 'success', title: 'Cobrado y Guardado ☁️', toast: true, 
+                    position: 'top-end', showConfirmButton: false, timer: 2000 
+                }); 
+            } else {
+                throw new Error("Google rechazó la venta.");
+            }
+        } catch (e) { 
+            Swal.fire('Error', 'No se pudo guardar: ' + e.message, 'error'); 
+        } 
+    };
     /* ==========================================================================
        7. INVENTARIO MAESTRO
        ========================================================================== */
