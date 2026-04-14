@@ -639,7 +639,7 @@
                 <div class="calc-screen" id="calc-display">0</div>
                 <div class="row g-3" id="calc-grid">
                     </div>
-                <button class="btn btn-glam w-100 mt-4 py-3 fs-4" onclick="addCalcToCash()">
+               <button class="btn btn-glam w-100 mt-4 py-3 fs-4" onclick="window.addCalcToCash()">
                     <i class="fas fa-money-bill-wave me-2"></i>COBRAR EN EFECTIVO
                 </button>
             </div>
@@ -1298,7 +1298,7 @@
         } 
         display.innerText = STATE.calcInput; 
     }
-
+    
    /* --- COBRO TERMINAL POS (CALCULADORA) -> A LA NUBE --- */
     window.addCalcToCash = async function() { 
         try { 
@@ -1322,6 +1322,51 @@
                     hora: { stringValue: horaStr }
                 }
             };
+
+            const urlVenta = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/venta?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+            
+            // 2. Enviamos el cobro a Google
+            const respuesta = await fetch(urlVenta, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paqueteVenta)
+            });
+
+            if (respuesta.ok) {
+                // 3. Si Google guardó el dinero, actualizamos la pantalla local
+                STATE.caja += val; 
+                STATE.calcInput = '0'; 
+                document.getElementById('calc-display').innerText = '0'; 
+                
+                STATE.sales.push({ 
+                    ncf: ncf, 
+                    tipoFactura: 'B02', 
+                    client: "VENTA DIRECTA CAJA", 
+                    total: val.toFixed(2), 
+                    method: "Efectivo", 
+                    time: horaStr, 
+                    date: fechaStr, 
+                    cart: [] 
+                }); 
+                
+                save(); 
+
+                // CORRECCIÓN: Llamamos a la actualización de pantalla de forma segura
+                if (typeof renderAdmin === "function") {
+                    renderAdmin();
+                }
+                
+                Swal.fire({ 
+                    icon: 'success', title: 'Cobrado y Guardado ☁️', toast: true, 
+                    position: 'top-end', showConfirmButton: false, timer: 2000 
+                }); 
+            } else {
+                throw new Error("Google rechazó la venta.");
+            }
+        } catch (e) { 
+            Swal.fire('Error', 'No se pudo guardar: ' + e.message, 'error'); 
+        } 
+    };
 
             const urlVenta = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/venta?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
             
