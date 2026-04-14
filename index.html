@@ -1691,7 +1691,7 @@
         });
     }
 
-    /* ==========================================================================
+   /* ==========================================================================
        8. ADMINISTRACIÓN, RRHH Y NÓMINA (SISTEMA DE COMISIONES INTEGRADO)
        ========================================================================== */
     function renderAdmin() {
@@ -1731,8 +1731,9 @@
                 } 
             });
   
+            // NOTA: Se agregaron comillas simples a los IDs ('${s.id}') para que Firebase no rompa el código
             htmlStaff += `
-            <div class="staff-card-vip border mb-2">
+            <div class="staff-card-vip border mb-2 shadow-sm">
                 <div class="d-flex align-items-center">
                     <img src="${s.img || 'https://via.placeholder.com/150'}" class="staff-img">
                     <div class="flex-grow-1">
@@ -1751,13 +1752,13 @@
                     </div>
                 </div>
                 <div class="mt-2 d-flex gap-1 justify-content-center">
-                    <button class="btn ${s.status==='Online' ? 'btn-dark' : 'btn-glam'} btn-sm rounded-pill fw-bold w-50" style="font-size:10px" onclick="toggleClock(${i})">
-                        ${s.status==='Online' ? 'SALIDA' : 'ENTRADA'}
+                    <button class="btn ${s.status === 'Online' ? 'btn-dark' : 'btn-glam'} btn-sm rounded-pill fw-bold w-50" style="font-size:10px" onclick="staffClockIn(${i})">
+                        ${s.status === 'Online' ? 'SALIDA' : 'ENTRADA'}
                     </button>
-                    <button class="btn btn-outline-dark btn-sm rounded-pill w-50" style="font-size:10px" onclick="addManualStaffSale(${s.id})">
+                    <button class="btn btn-outline-dark btn-sm rounded-pill w-50" style="font-size:10px" onclick="addManualStaffSale('${s.id}')">
                         <i class="fas fa-plus"></i> Venta
                     </button>
-                    <button class="btn btn-danger btn-sm rounded-pill w-50" style="font-size:10px" onclick="deleteStaff(${s.id})">
+                    <button class="btn btn-danger btn-sm rounded-pill w-50" style="font-size:10px" onclick="deleteStaff('${s.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1775,13 +1776,13 @@
             let htmlCitas = '';
             citasDeHoy.forEach(a => {
                 htmlCitas += `
-                <div class="p-3 mb-2 bg-light border-start border-pink border-4 rounded-3 d-flex justify-content-between align-items-center">
+                <div class="p-3 mb-2 bg-light border-start border-pink border-4 rounded-3 d-flex justify-content-between align-items-center shadow-sm">
                     <div>
                         <h6 class="fw-bold text-pink mb-0 m-0"><i class="fas fa-clock me-1"></i>${a.time}</h6>
                         <small class="fw-bold">${a.stylist}</small><br>
                         <small class="text-muted" style="font-size:10px">TKT: ${a.ticket}</small>
                     </div>
-                    <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteAppt(${a.id})">
+                    <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteAppt('${a.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>`;
@@ -1791,28 +1792,22 @@
         renderChart();
     }
   
-   /* ==========================================================================
+    /* ==========================================================================
        FUNCIÓN DE ENTRADA/SALIDA (CLOCK IN) SINCRONIZADA CON FIREBASE
        ========================================================================== */
     window.staffClockIn = async function(index) {
         const employee = STATE.staff[index];
         if(!employee) return;
 
-        // Mostrar cargando
-        Swal.fire({ title: 'Sincronizando con la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+        Swal.fire({ title: 'Conectando con la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
         try {
-            // Si está Offline, lo ponemos Online. Si está Online, lo ponemos Offline.
             const nuevoEstado = (employee.status === 'Offline') ? 'Online' : 'Offline';
 
-            // 1. Preparamos el cambio para Firebase
             const updateData = {
-                fields: {
-                    status: { stringValue: nuevoEstado }
-                }
+                fields: { status: { stringValue: nuevoEstado } }
             };
 
-            // 2. URL con PATCH para actualizar solo el campo "status"
             const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff/${employee.id}?updateMask.fieldPaths=status&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
 
             const respuesta = await fetch(url, {
@@ -1822,111 +1817,32 @@
             });
 
             if (respuesta.ok) {
-                // Actualizamos en la memoria del navegador para ver el cambio ya
                 employee.status = nuevoEstado;
                 employee.clockInTime = (nuevoEstado === 'Online') ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
                 
                 save();
                 renderAdmin();
-                renderClient(); // ¡MUY IMPORTANTE! Esto refresca la lista de citas para los clientes
+                renderClient(); // Refresca la lista pública para que el cliente pueda agendar
 
                 Swal.fire({
                     icon: 'success',
-                    title: nuevoEstado === 'Online' ? '¡Sesión Iniciada!' : '¡Sesión Cerrada!',
-                    text: `${employee.name} está ahora ${nuevoEstado}`,
+                    title: nuevoEstado === 'Online' ? '¡Entrada Registrada!' : '¡Salida Registrada!',
+                    text: `${employee.name} está ahora ${nuevoEstado === 'Online' ? 'disponible' : 'inactivo'}.`,
                     timer: 1500,
                     showConfirmButton: false
                 });
             } else {
-                throw new Error("Error de respuesta de Google Cloud");
+                throw new Error("Error conectando con Google Cloud.");
             }
         } catch (error) {
             console.error(error);
             Swal.fire('Error', 'No se pudo actualizar el estado en la nube.', 'error');
         }
     };
-   async function addNewStaff() {
-        const { value: formValues } = await Swal.fire({ 
-            title: 'NUEVO ESPECIALISTA VIP', 
-            html: `
-            <div class="text-start">
-                <label class="small fw-bold">Foto del Profesional:</label>
-                <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
-                
-                <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
-                <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
-                
-                <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
-                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
-                
-                <label class="small fw-bold text-pink">Comisión (%)</label>
-                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
-            </div>`, 
-            showCancelButton: true, 
-            confirmButtonText: 'Guardar en Google ☁️', 
-            preConfirm: async () => { 
-                const name = document.getElementById('ns-name').value.trim(); 
-                const spec = document.getElementById('ns-spec').value.trim(); 
-                const comm = document.getElementById('ns-comm').value || "20";
-                const file = document.getElementById('ns-file').files[0]; 
-                
-                if (!name || !spec) { 
-                    Swal.showValidationMessage('Nombre y Especialidad obligatorios'); 
-                    return false; 
-                } 
-                
-                let finalImg = 'https://via.placeholder.com/150'; 
-                if (file) { 
-                    try { 
-                        Swal.showLoading();
-                        // Importante: Asegúrate de que la función comprimirYConvertirABase64 existe en tu código
-                        finalImg = await comprimirYConvertirABase64(file, 300); 
-                    } catch(e) { console.log("Error foto"); } 
-                } 
-                return { name, spec, comm, img: finalImg }; 
-            } 
-        });
-        
-        if (formValues) { 
-            Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
-            try {
-                // Preparamos los campos EXACTOS para Firebase
-                const paqueteStaff = {
-                    fields: {
-                        nombre: { stringValue: formValues.name },
-                        especialidad: { stringValue: formValues.spec },
-                        comision: { stringValue: formValues.comm.toString() },
-                        img: { stringValue: formValues.img },
-                        status: { stringValue: "Offline" }
-                    }
-                };
-
-                // URL con tu API KEY
-                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-                
-                const respuesta = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paqueteStaff)
-                });
-
-                if (respuesta.ok) {
-                    Swal.fire('¡Logrado!', 'Personal guardado en la nube.', 'success');
-                    // Recargamos todo para que aparezca el nuevo staff bajado de la nube
-                    cargarTodoDesdeNube(); 
-                } else {
-                    const err = await respuesta.json();
-                    console.log("Error Firebase:", err);
-                    throw new Error("Respuesta de Google no fue OK");
-                }
-            } catch (e) {
-                Swal.fire('Error', 'No subió: ' + e.message, 'error');
-            }
-        }
-    }
     function addManualStaffSale(id) {
-        const staff = STATE.staff.find(s => s.id === id); 
+        // Encontramos al empleado usando el ID de texto de Firebase
+        const staff = STATE.staff.find(s => s.id === String(id)); 
         if(!staff) return;
         
         Swal.fire({ 
@@ -1961,36 +1877,57 @@
         });
     }
 
-    function deleteStaff(id) {
-        Swal.fire({ 
+    async function deleteStaff(id) {
+        const result = await Swal.fire({ 
             title: '¿Borrar Personal?', 
+            text: 'Esta acción lo eliminará de Google Firebase.',
             icon: 'warning', 
             showCancelButton: true, 
             confirmButtonColor: '#d33', 
             confirmButtonText: 'Sí, eliminar' 
-        }).then((r) => {
-            if (r.isConfirmed) { 
-                STATE.staff = STATE.staff.filter(s => s.id !== id); 
+        });
+
+        if (result.isConfirmed) { 
+            Swal.fire({ title: 'Borrando de la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            try {
+                const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff/${id}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+                await fetch(url, { method: 'DELETE' });
+                
+                STATE.staff = STATE.staff.filter(s => s.id !== String(id)); 
                 save(); 
                 renderAdmin(); 
+                renderClient();
+                Swal.fire('Eliminado', 'El personal fue removido.', 'success');
+            } catch(e) {
+                Swal.fire('Error', 'No se pudo eliminar de la base de datos.', 'error');
             }
-        });
+        }
     }
 
-    function deleteAppt(id) {
-        Swal.fire({ 
+    async function deleteAppt(id) {
+        const result = await Swal.fire({ 
             title: '¿Cancelar cita?', 
+            text: 'Se eliminará permanentemente de la agenda.',
             icon: 'warning', 
             showCancelButton: true, 
             confirmButtonColor: '#d33', 
             confirmButtonText: 'Sí, Borrar' 
-        }).then((r) => {
-            if (r.isConfirmed) { 
-                STATE.appts = STATE.appts.filter(x => x.id !== id); 
+        });
+
+        if (result.isConfirmed) { 
+            Swal.fire({ title: 'Cancelando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+            try {
+                const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/cita/${id}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+                await fetch(url, { method: 'DELETE' });
+
+                STATE.appts = STATE.appts.filter(x => x.id !== String(id)); 
                 save(); 
                 renderAdmin(); 
+                Swal.fire('Cancelada', 'La cita ha sido eliminada.', 'success');
+            } catch(e) {
+                Swal.fire('Error', 'Hubo un problema al cancelar la cita en la nube.', 'error');
             }
-        });
+        }
     }
 
     async function openStaffPayments() {
