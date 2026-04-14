@@ -1690,160 +1690,136 @@
             }
         });
     }
-
+    
     /* ==========================================================================
-       8. ADMINISTRACIÓN, RRHH Y NÓMINA (SISTEMA DE COMISIONES INTEGRADO)
+       8. GESTIÓN ADMINISTRATIVA (REEMPLAZO INTEGRAL)
        ========================================================================== */
     function renderAdmin() {
         const hoyObj = new Date(); 
         const hoyStrLocal = hoyObj.toLocaleDateString(); 
         const hoyStrISO = hoyObj.toISOString().split("T")[0]; 
         
+        // 1. Actualizar contadores superiores
         let totalVentasHoy = 0; 
-        STATE.sales.forEach(s => { 
-            if (s.date === hoyStrLocal) { totalVentasHoy++; } 
-        });
+        STATE.sales.forEach(s => { if (s.date === hoyStrLocal) totalVentasHoy++; });
         
-        document.getElementById('adm-caja').innerText = `RD$ ${STATE.caja.toLocaleString(undefined, {minimumFractionDigits: 2})}`; 
-        document.getElementById('adm-sales-count').innerText = totalVentasHoy;
+        if(document.getElementById('adm-caja')) 
+            document.getElementById('adm-caja').innerText = `RD$ ${STATE.caja.toLocaleString(undefined, {minimumFractionDigits: 2})}`; 
+        if(document.getElementById('adm-sales-count')) 
+            document.getElementById('adm-sales-count').innerText = totalVentasHoy;
         
-        let onlineCount = 0; 
-        STATE.staff.forEach(s => { 
-            if (s.status === 'Online') { onlineCount++; } 
-        }); 
-        document.getElementById('adm-staff-count').innerText = onlineCount;
+        const activos = STATE.staff.filter(s => s.status === 'Online' || s.status === 'Activo').length;
+        if(document.getElementById('adm-staff-count')) 
+            document.getElementById('adm-staff-count').innerText = activos;
         
+        // 2. Dibujar Lista de Staff
         let htmlStaff = '';
         STATE.staff.forEach((s, i) => { 
-            const timeInfo = s.clockInTime 
-                ? `<small class="text-success fw-bold d-block"><i class="fas fa-clock me-1"></i>In: ${s.clockInTime}</small>` 
-                : `<small class="text-muted d-block"><i class="fas fa-bed me-1"></i>Inactivo</small>`; 
+            const estaActivo = (s.status === 'Online' || s.status === 'Activo');
             
-            let citasHoy = 0; 
-            STATE.appts.forEach(a => { 
-                if(a.stylist === s.name && a.date === hoyStrISO) { citasHoy++; } 
-            });
-            
+            let citasHoy = STATE.appts.filter(a => a.stylist === s.name && a.date === hoyStrISO).length;
             let ventasStaffHoy = 0; 
             STATE.sales.forEach(venta => { 
-                if (venta.client === `Servicio Salon - ${s.name}` && venta.date === hoyStrLocal) { 
+                if (venta.client.includes(s.name) && venta.date === hoyStrLocal) { 
                     ventasStaffHoy += parseFloat(venta.total); 
                 } 
             });
-  
+
             htmlStaff += `
-            <div class="staff-card-vip border mb-2">
-                <div class="d-flex align-items-center">
-                    <img src="${s.img || 'https://via.placeholder.com/150'}" class="staff-img">
+            <div class="staff-card-vip border mb-2 shadow-sm p-3 bg-white rounded-4">
+                <div class="d-flex align-items-center mb-2">
+                    <img src="${s.img || 'https://via.placeholder.com/150'}" style="width:50px; height:50px; border-radius:12px; object-fit:cover; margin-right:12px; border:2px solid ${estaActivo ? '#FF1493':'#ccc'}">
                     <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-0 d-flex align-items-center">
-                            <span class="status-dot ${s.status === 'Online' ? 'online' : 'offline'}"></span> ${s.name}
+                        <h6 class="fw-bold mb-0" style="font-size:14px">
+                            <span class="status-dot ${estaActivo ? 'online' : 'offline'}"></span> ${s.name}
                         </h6>
-                        ${timeInfo}
+                        <small class="${estaActivo ? 'text-success fw-bold' : 'text-muted'}" style="font-size:11px">
+                            ${estaActivo ? 'TRABAJANDO' : 'INACTIVO'}
+                        </small>
                     </div>
                 </div>
-                <div class="row g-1 mt-2 text-center bg-light rounded py-1 border">
-                    <div class="col-6 border-end">
-                        <small class="fw-bold text-dark" style="font-size:10px">CITAS HOY<br><span class="fs-6">${citasHoy}</span></small>
-                    </div>
-                    <div class="col-6">
-                        <small class="fw-bold text-success" style="font-size:10px">VENTAS HOY<br>RD$ ${ventasStaffHoy.toLocaleString()}</small>
-                    </div>
+                <div class="row g-1 text-center bg-light rounded py-1 border mb-2">
+                    <div class="col-6 border-end"><small style="font-size:9px">CITAS: ${citasHoy}</small></div>
+                    <div class="col-6"><small style="font-size:9px">HOY: RD$ ${ventasStaffHoy.toLocaleString()}</small></div>
                 </div>
-                <div class="mt-2 d-flex gap-1 justify-content-center">
-                    <button class="btn ${s.status==='Online' ? 'btn-dark' : 'btn-glam'} btn-sm rounded-pill fw-bold w-50" style="font-size:10px" onclick="toggleClock(${i})">
-                        ${s.status==='Online' ? 'SALIDA' : 'ENTRADA'}
+                <div class="d-flex gap-2">
+                    <button class="btn ${estaActivo ? 'btn-dark' : 'btn-glam'} btn-sm rounded-pill fw-bold flex-grow-1" 
+                            style="font-size:10px;" onclick="window.staffClockIn(${i})">
+                        ${estaActivo ? 'SALIDA' : 'ENTRADA'}
                     </button>
-                    <button class="btn btn-outline-dark btn-sm rounded-pill w-50" style="font-size:10px" onclick="addManualStaffSale(${s.id})">
-                        <i class="fas fa-plus"></i> Venta
-                    </button>
-                    <button class="btn btn-danger btn-sm rounded-pill w-50" style="font-size:10px" onclick="deleteStaff(${s.id})">
-                        <i class="fas fa-trash"></i>
+                    <button class="btn btn-outline-dark btn-sm rounded-pill flex-grow-1" 
+                            style="font-size:10px;" onclick="window.addManualSale('${s.id}')">
+                        + VENTA
                     </button>
                 </div>
             </div>`; 
         });
         document.getElementById('adm-staff-list').innerHTML = htmlStaff;
-  
+
+        // 3. Dibujar Agenda
         const citasDeHoy = STATE.appts.filter(a => a.date === hoyStrISO);
-        if (citasDeHoy.length === 0) {
-            document.getElementById('adm-agenda-list').innerHTML = `
-                <div class="text-center p-4 text-muted">
-                    <i class="fas fa-calendar-times fs-3 mb-2 opacity-50"></i><br>Libre hoy
-                </div>`;
-        } else {
-            let htmlCitas = '';
-            citasDeHoy.forEach(a => {
-                htmlCitas += `
-                <div class="p-3 mb-2 bg-light border-start border-pink border-4 rounded-3 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="fw-bold text-pink mb-0 m-0"><i class="fas fa-clock me-1"></i>${a.time}</h6>
-                        <small class="fw-bold">${a.stylist}</small><br>
-                        <small class="text-muted" style="font-size:10px">TKT: ${a.ticket}</small>
-                    </div>
-                    <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteAppt(${a.id})">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>`;
-            });
-            document.getElementById('adm-agenda-list').innerHTML = htmlCitas;
-        }
-        renderChart();
+        let htmlAgenda = citasDeHoy.length === 0 ? '<div class="text-center p-3 text-muted small">Sin citas para hoy</div>' : '';
+        citasDeHoy.forEach(a => {
+            htmlAgenda += `
+            <div class="p-2 mb-2 bg-light border-start border-pink border-4 rounded d-flex justify-content-between align-items-center shadow-sm">
+                <div style="font-size:11px"><b>${a.time}</b> - ${a.stylist}</div>
+                <button class="btn btn-sm text-danger p-0" onclick="window.deleteCita('${a.id}')"><i class="fas fa-trash-alt"></i></button>
+            </div>`;
+        });
+        document.getElementById('adm-agenda-list').innerHTML = htmlAgenda;
+        if (typeof renderChart === "function") renderChart();
     }
-  
-   /* ==========================================================================
-       FUNCIÓN DE ENTRADA/SALIDA (CLOCK IN) SINCRONIZADA CON FIREBASE
-       ========================================================================== */
+
+    /* --- ENTRADA/SALIDA NUBE --- */
     window.staffClockIn = async function(index) {
-        const employee = STATE.staff[index];
-        if(!employee) return;
-
-        // Mostrar cargando
-        Swal.fire({ title: 'Sincronizando con la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-
+        const s = STATE.staff[index];
+        if(!s) return;
+        const nuevoEstado = (s.status === 'Online' || s.status === 'Activo') ? 'Offline' : 'Online';
+        Swal.fire({ title: 'Sincronizando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
         try {
-            // Si está Offline, lo ponemos Online. Si está Online, lo ponemos Offline.
-            const nuevoEstado = (employee.status === 'Offline') ? 'Online' : 'Offline';
-
-            // 1. Preparamos el cambio para Firebase
-            const updateData = {
-                fields: {
-                    status: { stringValue: nuevoEstado }
-                }
-            };
-
-            // 2. URL con PATCH para actualizar solo el campo "status"
-            const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff/${employee.id}?updateMask.fieldPaths=status&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-
-            const respuesta = await fetch(url, {
+            const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff/${s.id}?updateMask.fieldPaths=status&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+            const res = await fetch(url, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updateData)
+                body: JSON.stringify({ fields: { status: { stringValue: nuevoEstado } } })
             });
-
-            if (respuesta.ok) {
-                // Actualizamos en la memoria del navegador para ver el cambio ya
-                employee.status = nuevoEstado;
-                employee.clockInTime = (nuevoEstado === 'Online') ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
-                
-                save();
-                renderAdmin();
-                renderClient(); // ¡MUY IMPORTANTE! Esto refresca la lista de citas para los clientes
-
-                Swal.fire({
-                    icon: 'success',
-                    title: nuevoEstado === 'Online' ? '¡Sesión Iniciada!' : '¡Sesión Cerrada!',
-                    text: `${employee.name} está ahora ${nuevoEstado}`,
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            } else {
-                throw new Error("Error de respuesta de Google Cloud");
+            if (res.ok) {
+                s.status = nuevoEstado;
+                save(); renderAdmin(); renderClient();
+                Swal.close();
             }
-        } catch (error) {
-            console.error(error);
-            Swal.fire('Error', 'No se pudo actualizar el estado en la nube.', 'error');
-        }
+        } catch (e) { Swal.fire('Error', 'Sin conexión a Google', 'error'); }
+    };
+
+    /* --- VENTAS MANUALES NUBE --- */
+    window.addManualSale = function(firebaseId) {
+        const staff = STATE.staff.find(s => s.id === firebaseId); 
+        if(!staff) return;
+        Swal.fire({ 
+            title: `Venta: ${staff.name}`, input: 'number', inputPlaceholder: 'Monto RD$', showCancelButton: true
+        }).then((r) => { 
+            if (r.isConfirmed && r.value > 0) { 
+                STATE.caja += parseFloat(r.value); 
+                STATE.sales.push({ 
+                    ncf: "MAN-" + Math.floor(Math.random() * 900000), client: `Servicio - ${staff.name}`, 
+                    total: parseFloat(r.value).toFixed(2), date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString()
+                }); 
+                save(); renderAdmin();
+                Swal.fire('¡Venta Sumada!', '', 'success'); 
+            } 
+        });
+    };
+
+    /* --- BORRAR CITA NUBE --- */
+    window.deleteCita = async function(id) {
+        if(!(await Swal.fire({ title:'¿Borrar cita?', text:'Se eliminará de la nube', showCancelButton:true })).isConfirmed) return;
+        try {
+            const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/cita/${id}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+            await fetch(url, { method: 'DELETE' });
+            STATE.appts = STATE.appts.filter(a => a.id !== id);
+            save(); renderAdmin();
+            Swal.fire('Eliminada', '', 'success');
+        } catch(e) { console.error(e); }
     };
    async function addNewStaff() {
         const { value: formValues } = await Swal.fire({ 
