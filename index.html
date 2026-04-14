@@ -2961,7 +2961,92 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-async function cargarTodoDesdeNube() {
+/* ==========================================================================
+       NUEVO STAFF - FUNCIÓN GLOBAL BLINDADA
+       ========================================================================== */
+    window.addNewStaff = async function() {
+        const { value: formValues } = await Swal.fire({ 
+            title: 'NUEVO ESPECIALISTA VIP', 
+            html: `
+            <div class="text-start">
+                <label class="small fw-bold">Foto del Profesional:</label>
+                <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
+                
+                <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
+                <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
+                
+                <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
+                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
+                
+                <label class="small fw-bold text-pink">Comisión (%)</label>
+                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
+            </div>`, 
+            showCancelButton: true, 
+            confirmButtonColor: '#FF1493',
+            confirmButtonText: 'Guardar en Firebase ☁️', 
+            preConfirm: async () => { 
+                const name = document.getElementById('ns-name').value.trim(); 
+                const spec = document.getElementById('ns-spec').value.trim(); 
+                const comm = document.getElementById('ns-comm').value || "20";
+                const file = document.getElementById('ns-file').files[0]; 
+                
+                if (!name || !spec) { 
+                    Swal.showValidationMessage('El nombre y la especialidad son obligatorios'); 
+                    return false; 
+                } 
+                
+                let finalImg = 'https://via.placeholder.com/150'; 
+                if (file) { 
+                    try { 
+                        Swal.showLoading();
+                        // Asumimos que comprimirYConvertirABase64 existe en tu código (lo vi en tu archivo)
+                        finalImg = await comprimirYConvertirABase64(file, 300); 
+                    } catch(e) { console.log("Error al procesar la imagen"); } 
+                } 
+                return { name, spec, comm, img: finalImg }; 
+            } 
+        });
+        
+        if (formValues) { 
+            Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+
+            try {
+                // Paquete estructurado para Firebase
+                const paqueteStaff = {
+                    fields: {
+                        nombre: { stringValue: formValues.name },
+                        especialidad: { stringValue: formValues.spec },
+                        comision: { stringValue: formValues.comm.toString() },
+                        img: { stringValue: formValues.img },
+                        status: { stringValue: "Offline" }
+                    }
+                };
+
+                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+                
+                const respuesta = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paqueteStaff)
+                });
+
+                if (respuesta.ok) {
+                    Swal.fire('¡Éxito!', 'El nuevo especialista ha sido guardado.', 'success');
+                    // Refrescamos llamando a la nube
+                    if (typeof cargarTodoDesdeNube === "function") {
+                        cargarTodoDesdeNube(); 
+                    } else {
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                } else {
+                    throw new Error("El servidor de Google rechazó los datos.");
+                }
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo guardar: ' + e.message, 'error');
+            }
+        }
+    };
+    async function cargarTodoDesdeNube() {
         try {
             const key = "?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
             const baseUrl = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/";
