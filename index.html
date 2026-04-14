@@ -1806,24 +1806,24 @@
   
     async function addNewStaff() {
         const { value: formValues } = await Swal.fire({ 
-            title: 'NUEVO ESPECIALISTA', 
+            title: 'NUEVO ESPECIALISTA VIP', 
             html: `
             <div class="text-start">
-                <label class="small fw-bold">Foto:</label>
+                <label class="small fw-bold">Foto del Profesional:</label>
                 <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
                 
                 <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
-                <input id="ns-name" class="form-control form-control-sm mb-2">
+                <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
                 
                 <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
-                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Colorimetría">
+                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
                 
-                <label class="small fw-bold text-pink">Comisión en Ventas (%)</label>
-                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" placeholder="Ej: 20">
+                <label class="small fw-bold text-pink">Comisión por Servicio (%)</label>
+                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
             </div>`, 
             focusConfirm: false, 
             showCancelButton: true, 
-            confirmButtonText: 'Registrar', 
+            confirmButtonText: 'Guardar en la Nube ☁️', 
             preConfirm: async () => { 
                 const name = document.getElementById('ns-name').value.trim(); 
                 const spec = document.getElementById('ns-spec').value.trim(); 
@@ -1831,37 +1831,69 @@
                 const file = document.getElementById('ns-file').files[0]; 
                 
                 if (!name || !spec) { 
-                    Swal.showValidationMessage('Faltan datos marcados con *'); 
+                    Swal.showValidationMessage('Nombre y Especialidad son obligatorios'); 
                     return false; 
                 } 
                 
                 let finalImg = 'https://via.placeholder.com/150'; 
                 if (file) { 
                     try { 
-                        finalImg = await resizeImage(file); 
-                    } catch(e) { } 
+                        Swal.showLoading();
+                        // Usamos la función de comprimir que ya tenemos
+                        finalImg = await comprimirYConvertirABase64(file, 300); 
+                    } catch(e) { console.error("Error en foto staff"); } 
                 } 
                 return { name, spec, comm, img: finalImg }; 
             } 
         });
         
         if (formValues) { 
-            STATE.staff.push({ 
-                id: Date.now(), 
-                empId: "EMP-" + Math.floor(Math.random() * 9000 + 1000), 
-                name: formValues.name, 
-                specialty: formValues.spec, 
-                commission: formValues.comm, // Asignando la comisión
-                img: formValues.img, 
-                status: 'Offline', 
-                clockInTime: null, 
-                salesTotal: 0 
-            }); 
-            save(); 
-            renderAdmin(); 
+            Swal.fire({ title: 'Registrando en Google...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+
+            try {
+                // Preparamos el paquete para la colección "staff"
+                const datosStaff = {
+                    fields: {
+                        nombre: { stringValue: formValues.name },
+                        especialidad: { stringValue: formValues.spec },
+                        comision: { stringValue: formValues.comm.toString() },
+                        img: { stringValue: formValues.img },
+                        status: { stringValue: "Offline" }
+                    }
+                };
+
+                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+                
+                const respuesta = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosStaff)
+                });
+
+                if (respuesta.ok) {
+                    const data = await respuesta.json();
+                    // Agregamos localmente para ver el cambio inmediato
+                    STATE.staff.push({ 
+                        id: data.name.split('/').pop(), 
+                        empId: "EMP-" + Math.floor(Math.random() * 9000), 
+                        name: formValues.name, 
+                        specialty: formValues.spec, 
+                        commission: formValues.comm, 
+                        img: formValues.img, 
+                        status: 'Offline', 
+                        clockInTime: null, 
+                        salesTotal: 0 
+                    }); 
+                    save(); 
+                    renderAdmin(); 
+                    renderClient(); // Para que aparezca en la lista de citas
+                    Swal.fire('¡Éxito!', 'Especialista agregado a la nube.', 'success'); 
+                }
+            } catch (e) {
+                Swal.fire('Error', 'No se pudo guardar el personal.', 'error');
+            }
         }
     }
-  
     function addManualStaffSale(id) {
         const staff = STATE.staff.find(s => s.id === id); 
         if(!staff) return;
@@ -2899,7 +2931,7 @@ async function cargarTodoDesdeNube() {
                 });
             }
 
-            // --- B. CARGAR CITAS (AGENDA) ---
+            // --- B. CARGAR CITAS ---
             const resCitas = await fetch(baseUrl + "cita" + key);
             const dataCitas = await resCitas.json();
             if (dataCitas.documents) {
@@ -2916,18 +2948,39 @@ async function cargarTodoDesdeNube() {
                 });
             }
 
-            // REFRESCAR TODO
+            // --- C. CARGAR STAFF (PERSONAL) ---
+            const resStaff = await fetch(baseUrl + "staff" + key);
+            const dataStaff = await resStaff.json();
+            if (dataStaff.documents) {
+                STATE.staff = dataStaff.documents.map(doc => {
+                    const c = doc.fields;
+                    return {
+                        id: doc.name.split('/').pop(),
+                        empId: "EMP-" + doc.name.split('/').pop().substring(0,3),
+                        name: c.nombre?.stringValue || "Sin Nombre",
+                        specialty: c.especialidad?.stringValue || "General",
+                        commission: Number(c.comision?.stringValue || 20),
+                        img: c.img?.stringValue || "https://via.placeholder.com/150",
+                        status: 'Offline',
+                        clockInTime: null,
+                        salesTotal: 0
+                    };
+                });
+            }
+
+            // REFRESCAR TODO EL WEBSITE
             save();
             if (typeof filterShop === "function") filterShop('all');
             if (typeof filterInventory === "function") filterInventory();
             if (typeof renderAdmin === "function") renderAdmin();
-            console.log("¡Nube sincronizada: Productos y Citas cargados!");
+            if (typeof renderClient === "function") renderClient();
+            console.log("¡Sincronización Total: Productos, Citas y Personal listos!");
 
         } catch (error) {
-            console.error("Error cargando datos:", error);
+            console.error("Error sincronizando:", error);
         }
     }
 
-    // Ejecutar al cargar
+    // Arrancamos la carga masiva
     cargarTodoDesdeNube();
 </script>
