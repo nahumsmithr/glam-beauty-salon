@@ -1791,19 +1791,60 @@
         renderChart();
     }
   
-    function toggleClock(i) { 
-        const s = STATE.staff[i]; 
-        if (s.status === 'Offline') { 
-            s.status = 'Online'; 
-            s.clockInTime = new Date().toLocaleTimeString(); 
-        } else { 
-            s.status = 'Offline'; 
-            s.clockInTime = null; 
-        } 
-        save(); 
-        renderAdmin(); 
-    }
-  
+   /* ==========================================================================
+       FUNCIÓN DE ENTRADA/SALIDA (CLOCK IN) SINCRONIZADA CON FIREBASE
+       ========================================================================== */
+    window.staffClockIn = async function(index) {
+        const employee = STATE.staff[index];
+        if(!employee) return;
+
+        // Mostrar cargando
+        Swal.fire({ title: 'Sincronizando con la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+
+        try {
+            // Si está Offline, lo ponemos Online. Si está Online, lo ponemos Offline.
+            const nuevoEstado = (employee.status === 'Offline') ? 'Online' : 'Offline';
+
+            // 1. Preparamos el cambio para Firebase
+            const updateData = {
+                fields: {
+                    status: { stringValue: nuevoEstado }
+                }
+            };
+
+            // 2. URL con PATCH para actualizar solo el campo "status"
+            const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff/${employee.id}?updateMask.fieldPaths=status&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+
+            const respuesta = await fetch(url, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+
+            if (respuesta.ok) {
+                // Actualizamos en la memoria del navegador para ver el cambio ya
+                employee.status = nuevoEstado;
+                employee.clockInTime = (nuevoEstado === 'Online') ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+                
+                save();
+                renderAdmin();
+                renderClient(); // ¡MUY IMPORTANTE! Esto refresca la lista de citas para los clientes
+
+                Swal.fire({
+                    icon: 'success',
+                    title: nuevoEstado === 'Online' ? '¡Sesión Iniciada!' : '¡Sesión Cerrada!',
+                    text: `${employee.name} está ahora ${nuevoEstado}`,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } else {
+                throw new Error("Error de respuesta de Google Cloud");
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo actualizar el estado en la nube.', 'error');
+        }
+    };
    async function addNewStaff() {
         const { value: formValues } = await Swal.fire({ 
             title: 'NUEVO ESPECIALISTA VIP', 
@@ -2951,7 +2992,7 @@ async function cargarTodoDesdeNube() {
                         specialty: c.especialidad?.stringValue || "General",
                         commission: Number(c.comision?.stringValue || 20),
                         img: c.img?.stringValue || "https://via.placeholder.com/150",
-                        status: 'Offline',
+                        status: c.status?.stringValue || 'Offline',
                         clockInTime: null,
                         salesTotal: 0
                     };
