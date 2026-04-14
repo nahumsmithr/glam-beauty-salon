@@ -1613,7 +1613,7 @@
             html: `
               <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
                   <div class="text-center mb-3">
-                      <img src="${prod.img}" height="80" class="border border-pink rounded shadow-sm">
+                      <img src="${prod.img}" height="80" class="border border-pink rounded shadow-sm" onerror="this.src='https://via.placeholder.com/150'">
                   </div>
                   <div class="bg-light p-3 rounded border mb-4">
                       <h6 class="fw-bold text-dark text-center mb-3">Stock Físico: <span class="text-pink fs-4">${prod.stock}</span> / ${prod.maxStock || 50} MAX</h6>
@@ -1628,128 +1628,67 @@
                           </div>
                       </div>
                   </div>
-                  <h6 class="fw-bold text-pink border-bottom pb-1">Actualizar Información</h6>
-                  <div class="row g-2 mb-2">
-                      <div class="col-6">
-                          <label class="small fw-bold">Precio (RD$):</label>
-                          <input type="number" id="e-price" class="form-control form-control-sm" value="${prod.price}">
-                      </div>
-                      <div class="col-6">
-                          <label class="small fw-bold">Límite MAX:</label>
-                          <input type="number" id="e-max" class="form-control form-control-sm" value="${prod.maxStock || 50}">
-                      </div>
-                  </div>
-                  <div class="row g-2 mb-2">
-                      <div class="col-6">
-                          <label class="small fw-bold">Empresa Prov:</label>
-                          <input type="text" id="e-supplier" class="form-control form-control-sm" value="${prod.supplier || ''}">
-                      </div>
-                      <div class="col-6">
-                          <label class="small fw-bold">Contacto Prov:</label>
-                          <input type="text" id="e-contact" class="form-control form-control-sm" value="${prod.supplierContact || ''}">
-                      </div>
-                  </div>
-                  <div class="row g-2 mb-2">
-                      <div class="col-6">
-                          <label class="small fw-bold">Teléfono Prov:</label>
-                          <input type="text" id="e-phone" class="form-control form-control-sm" value="${prod.supplierPhone || ''}">
-                      </div>
-                      <div class="col-6">
-                          <label class="small fw-bold">Código SKU:</label>
-                          <input type="text" id="e-code" class="form-control form-control-sm" value="${prod.supplierCode || ''}">
-                      </div>
-                  </div>
-                  <div class="row g-2 mb-2 mt-3">
-                      <div class="col-6">
-                          <label class="small fw-bold">Fecha Pedido:</label>
-                          <input id="e-order-date" type="date" class="form-control form-control-sm" value="${prod.orderDate || ''}">
-                      </div>
-                      <div class="col-6">
-                          <label class="small fw-bold text-danger">Modificar Expiración:</label>
-                          <input id="e-expdate" type="date" class="form-control form-control-sm border-danger" value="${prod.expDate || ''}">
-                      </div>
-                  </div>
+                  <h6 class="fw-bold text-pink border-bottom pb-1">Información Actual</h6>
+                  <p class="small mb-1"><b>Nombre:</b> ${prod.name}</p>
+                  <p class="small mb-1"><b>Serial:</b> ${prod.serial}</p>
+                  
                   <div class="mt-4 pt-3 border-top text-center">
-                     <button id="btn-delete-real" class="btn btn-outline-danger w-100 fw-bold rounded-pill">
-                         <i class="fas fa-trash me-2"></i>ELIMINAR PRODUCTO
+                     <button id="btn-delete-real" class="btn btn-danger w-100 fw-bold rounded-pill">
+                         <i class="fas fa-trash-alt me-2"></i>ELIMINAR DE LA NUBE ☁️
                      </button>
+                     <p class="text-muted mt-2" style="font-size:10px;">Esta acción es irreversible en Firebase.</p>
                   </div>
               </div>`,
             showCancelButton: true, 
-            confirmButtonText: 'Guardar Cambios', 
-            confirmButtonColor: '#FF1493', 
-            cancelButtonText: 'Cancelar', 
+            confirmButtonText: 'Cerrar Ventana', 
+            confirmButtonColor: '#333', 
             width: '500px',
             didOpen: () => {
+                // --- LÓGICA DE ELIMINACIÓN REAL EN GOOGLE ---
                 document.getElementById('btn-delete-real').addEventListener('click', () => {
                     Swal.fire({ 
-                        title: '¿Borrar definitivamente?', 
+                        title: '¿Borrar de la Nube?', 
+                        text: `¿Estás seguro de eliminar "${prod.name}" permanentemente de Google Firebase?`, 
                         icon: 'warning', 
                         showCancelButton: true, 
                         confirmButtonColor: '#d33', 
-                        confirmButtonText: 'Sí, borrar' 
-                    }).then((res) => {
+                        confirmButtonText: 'Sí, borrar ahora' 
+                    }).then(async (res) => {
                         if (res.isConfirmed) { 
-                            STATE.inventory = STATE.inventory.filter(p => p.id !== id); 
-                            save(); 
-                            filterInventory(); 
-                            Swal.fire('Borrado', 'Eliminado.', 'success'); 
+                            // Spinner de borrado
+                            Swal.fire({
+                                title: 'Eliminando de Google Cloud...',
+                                allowOutsideClick: false,
+                                didOpen: () => { Swal.showLoading(); }
+                            });
+
+                            try {
+                                const fId = prod.firebaseId; 
+                                if (!fId) throw new Error("Este producto no tiene ID de nube.");
+
+                                // URL de borrado directo
+                                const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+                                
+                                const respuesta = await fetch(url, { method: 'DELETE' });
+
+                                if (respuesta.ok) {
+                                    // Quitamos del sistema local
+                                    STATE.inventory = STATE.inventory.filter(p => p.id !== id); 
+                                    save(); 
+                                    filterInventory(); 
+                                    filterShop('all');
+                                    Swal.fire('¡Fuera! 🗑️', 'Producto eliminado de la base de datos.', 'success'); 
+                                } else {
+                                    throw new Error("Firebase no permitió el borrado.");
+                                }
+                            } catch (err) {
+                                Swal.fire('Error', 'No se pudo eliminar: ' + err.message, 'error');
+                            }
                         }
                     });
                 });
-            },
-            preConfirm: () => {
-                const p = parseFloat(document.getElementById('e-price').value); 
-                const max = parseInt(document.getElementById('e-max').value);
-                const add = parseInt(document.getElementById('e-qty').value) || 0; 
-                const minus = parseInt(document.getElementById('e-minus').value) || 0;
-                
-                if (isNaN(p) || p <= 0 || isNaN(max)) { 
-                    Swal.showValidationMessage("Los valores deben ser números válidos"); 
-                    return false; 
-                }
-                
-                const newStock = prod.stock + add - minus;
-                
-                if (newStock < 0) { 
-                    Swal.showValidationMessage("No puedes restar más productos de los que tienes"); 
-                    return false; 
-                }
-                
-                if (newStock > max) { 
-                    Swal.showValidationMessage(`Límite superado. Intento: ${newStock}, Límite: ${max}.`); 
-                    return false; 
-                }
-  
-                return { 
-                    newStock, 
-                    price: p, 
-                    maxStock: max, 
-                    orderDate: document.getElementById('e-order-date').value, 
-                    expDate: document.getElementById('e-expdate').value, 
-                    supplier: document.getElementById('e-supplier').value, 
-                    supplierContact: document.getElementById('e-contact').value, 
-                    supplierPhone: document.getElementById('e-phone').value, 
-                    supplierCode: document.getElementById('e-code').value 
-                };
             }
         });
-        
-        if (formValues) { 
-            prod.stock = formValues.newStock; 
-            prod.price = formValues.price; 
-            prod.maxStock = formValues.maxStock; 
-            prod.orderDate = formValues.orderDate; 
-            prod.expDate = formValues.expDate; 
-            prod.supplier = formValues.supplier; 
-            prod.supplierContact = formValues.supplierContact; 
-            prod.supplierPhone = formValues.supplierPhone; 
-            prod.supplierCode = formValues.supplierCode; 
-            
-            save(); 
-            filterInventory(); 
-            Swal.fire('Éxito', 'Inventario actualizado.', 'success'); 
-        }
     }
 
     /* ==========================================================================
