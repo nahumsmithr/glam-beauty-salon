@@ -1405,7 +1405,7 @@
         });
     }
 
-   async function addProduct() {
+  async function addProduct() {
         const { value: formValues } = await Swal.fire({
             title: '<i class="fas fa-boxes text-pink me-2"></i>NUEVO PRODUCTO',
             html: `
@@ -1494,7 +1494,7 @@
                 let imgUrl = 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'; 
                 if (file) { 
                     try { 
-                        imgUrl = await resizeImage(file); // Convertimos la foto a texto Base64
+                        imgUrl = await resizeImage(file); 
                     } catch(e) {} 
                 }
                 
@@ -1508,7 +1508,6 @@
         });
         
         if (formValues) { 
-            // Mostramos mensaje de carga
             Swal.fire({
                 title: 'Subiendo producto...',
                 html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>',
@@ -1517,7 +1516,6 @@
             });
 
             try {
-                // Empaquetamos los datos en el idioma que Firebase entiende
                 const datosFirebase = {
                     fields: {
                         nombre: { stringValue: formValues.name },
@@ -1527,12 +1525,13 @@
                         categoria: { stringValue: formValues.cat },
                         serial: { stringValue: formValues.serial },
                         proveedor: { stringValue: formValues.supplier },
-                        img: { stringValue: formValues.img } // ¡Aquí viaja la foto!
+                        img: { stringValue: formValues.img }
                     }
                 };
 
-                // Enviamos el cohete a la base de datos
-                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto";
+                // ¡AQUÍ ESTABA EL DETALLE! Agregada la API KEY al enlace POST
+                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+                
                 const respuesta = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1544,7 +1543,6 @@
                     const rutaId = data.name.split('/');
                     const idRealFirebase = rutaId[rutaId.length - 1];
 
-                    // Lo agregamos a la pantalla de inmediato
                     STATE.inventory.push({ 
                         id: 5000 + STATE.inventory.length + 1, 
                         firebaseId: idRealFirebase,
@@ -1553,18 +1551,19 @@
                     
                     save(); 
                     filterInventory(); 
-                    filterShop('all'); // Refresca la boutique
+                    filterShop('all'); 
                     
                     Swal.fire('¡Subido!', 'Producto guardado en la nube exitosamente.', 'success'); 
                 } else {
-                    throw new Error("No se pudo conectar con Firebase");
+                    const errorJson = await respuesta.json();
+                    console.error("Error Firebase:", errorJson);
+                    throw new Error("Rechazado por Firebase. Quizás la foto es muy pesada.");
                 }
             } catch(e) {
                 Swal.fire('Error', 'Hubo un problema al subir: ' + e.message, 'error');
             }
         }
     }
-
     async function openQuickEdit(id) {
         const prod = STATE.inventory.find(p => p.id === id); 
         if (!prod) return;
