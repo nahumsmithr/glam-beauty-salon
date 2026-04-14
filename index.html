@@ -2236,50 +2236,82 @@
         });
     }
 
-    window.triggerConfirmBooking = function(date, hora, stylist) {
+    window.triggerConfirmBooking = async function(date, hora, stylist) {
         const email = document.getElementById('sw-email').value.trim(); 
         if(!email || !email.includes('@')) {
             return Swal.fire('Error', 'Proporciona un correo válido.', 'error'); 
         }
         
         const ticketCode = "GLAM-" + Math.floor(Math.random()*90000 + 10000); 
-        
-        STATE.appts.push({ 
-            id: Date.now(), 
-            ticket: ticketCode, 
-            stylist: stylist, 
-            date: date, 
-            time: hora, 
-            email: email 
-        });
-        
-        save(); 
 
-        // -------------------------------------------------------------
-        // ENVÍO DE CORREO DE CITA VÍA FORMSPREE
-        // -------------------------------------------------------------
-        fetch("https://formspree.io/f/xkopberl", {
-            method: "POST",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                Asunto: "¡NUEVA RESERVA VIP!",
-                Ticket: ticketCode,
-                Cliente_Correo: email,
-                Especialista: stylist,
-                Fecha: date,
-                Hora: hora
-            })
-        }).catch(err => console.log("Error enviando correo de cita", err));
-        
-        Swal.fire({ 
-            icon: 'success', 
-            title: '¡RESERVA CONFIRMADA!', 
-            html: `Guarda este código para tu cita:<br><h2 class="mt-3 p-2 bg-light border border-dashed text-pink rounded">${ticketCode}</h2>`, 
-            confirmButtonText: '¡Perfecto!' 
+        // Mostramos que estamos procesando
+        Swal.fire({
+            title: 'Reservando tu espacio VIP...',
+            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i>',
+            allowOutsideClick: false,
+            showConfirmButton: false
         });
+
+        try {
+            // 1. PREPARAMOS LOS DATOS PARA FIREBASE
+            const datosCita = {
+                fields: {
+                    ticket: { stringValue: ticketCode },
+                    estilista: { stringValue: stylist },
+                    fecha: { stringValue: date },
+                    hora: { stringValue: hora },
+                    cliente_email: { stringValue: email },
+                    estado: { stringValue: "Confirmada" }
+                }
+            };
+
+            // 2. ENVIAMOS A LA COLECCIÓN "cita" EN FIREBASE
+            const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/cita?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+            
+            const respuesta = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosCita)
+            });
+
+            if (respuesta.ok) {
+                // Guardamos en el sistema local para que aparezca de una vez
+                STATE.appts.push({ 
+                    id: Date.now(), 
+                    ticket: ticketCode, 
+                    stylist: stylist, 
+                    date: date, 
+                    time: hora, 
+                    email: email 
+                });
+                
+                save(); 
+
+                // 3. ENVÍO OPCIONAL A FORMSPREE (Para que te llegue el aviso al móvil)
+                fetch("https://formspree.io/f/xkopberl", {
+                    method: "POST",
+                    headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        Asunto: "¡NUEVA RESERVA DESDE LA NUBE!",
+                        Ticket: ticketCode,
+                        Especialista: stylist,
+                        Fecha: date,
+                        Hora: hora
+                    })
+                }).catch(err => console.log("Formspree offline"));
+                
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: '¡RESERVA CONFIRMADA!', 
+                    html: `Tu cita está guardada en la nube.<br>Ticket: <h2 class="text-pink">${ticketCode}</h2>`, 
+                    confirmButtonText: '¡Perfecto!' 
+                });
+            } else {
+                throw new Error("Google no pudo guardar la cita.");
+            }
+        } catch (error) {
+            Swal.fire('Error', 'No pudimos conectar con la agenda: ' + error.message, 'error');
+        }
     };
 
     function checkAvailability(stylist) {
@@ -2843,62 +2875,59 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  async function cargarInventarioDirecto() {
-      try {
-          // Tu enlace directo a Google con tu llave
-          const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-          const respuesta = await fetch(url);
-          const datos = await respuesta.json();
+async function cargarTodoDesdeNube() {
+        try {
+            const key = "?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+            const baseUrl = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/";
 
-          if (datos && datos.documents) {
-              const productosNuevos = [];
+            // --- A. CARGAR PRODUCTOS ---
+            const resProd = await fetch(baseUrl + "producto" + key);
+            const dataProd = await resProd.json();
+            if (dataProd.documents) {
+                STATE.inventory = dataProd.documents.map((doc, index) => {
+                    const c = doc.fields;
+                    return {
+                        id: 5000 + index,
+                        firebaseId: doc.name.split('/').pop(),
+                        name: c.nombre?.stringValue || "Producto",
+                        price: Number(c.precio?.stringValue || 0),
+                        stock: Number(c.cantidad?.stringValue || 0),
+                        maxStock: Number(c.maxStock?.stringValue || 50),
+                        cat: c.categoria?.stringValue || "General",
+                        img: c.img?.stringValue || "https://via.placeholder.com/150"
+                    };
+                });
+            }
 
-              datos.documents.forEach((doc, index) => {
-                  const rutaId = doc.name.split('/');
-                  const idReal = rutaId[rutaId.length - 1];
-                  const campos = doc.fields || {};
-                  
-                  // Extraemos los datos principales asegurando valores por defecto
-                  const nombreProd = campos.nombre ? (campos.nombre.stringValue || "Producto") : "Producto";
-                  const cantidadProd = campos.cantidad ? (campos.cantidad.stringValue || campos.cantidad.integerValue || "0") : "0";
-                  const precioProd = campos.precio ? (campos.precio.stringValue || campos.precio.integerValue || "0") : "0";
-                  
-                  // --- CORRECCIÓN DE LA IMAGEN ---
-                  // Leemos el texto de la imagen real guardada en Firebase
-                  // Si por alguna razón Firebase no tiene imagen, usamos la rosa de prueba
-                  const imagenProd = campos.img ? campos.img.stringValue : "https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique";
+            // --- B. CARGAR CITAS (AGENDA) ---
+            const resCitas = await fetch(baseUrl + "cita" + key);
+            const dataCitas = await resCitas.json();
+            if (dataCitas.documents) {
+                STATE.appts = dataCitas.documents.map(doc => {
+                    const c = doc.fields;
+                    return {
+                        id: doc.name.split('/').pop(),
+                        ticket: c.ticket?.stringValue || "N/A",
+                        stylist: c.estilista?.stringValue || "Cualquiera",
+                        date: c.fecha?.stringValue || "",
+                        time: c.hora?.stringValue || "",
+                        email: c.cliente_email?.stringValue || ""
+                    };
+                });
+            }
 
-                  // Disfrazamos el ID raro de Firebase con un número para tu carrito
-                  const idNumerico = 5000 + index; 
+            // REFRESCAR TODO
+            save();
+            if (typeof filterShop === "function") filterShop('all');
+            if (typeof filterInventory === "function") filterInventory();
+            if (typeof renderAdmin === "function") renderAdmin();
+            console.log("¡Nube sincronizada: Productos y Citas cargados!");
 
-                  productosNuevos.push({
-                      id: idNumerico,
-                      firebaseId: idReal,
-                      serial: campos.serial ? campos.serial.stringValue : "FB-" + idReal.substring(0,4),
-                      name: nombreProd,
-                      price: Number(precioProd),
-                      stock: Number(cantidadProd),
-                      maxStock: campos.maxStock ? Number(campos.maxStock.stringValue) : 50,
-                      cat: campos.categoria ? campos.categoria.stringValue : "General",
-                      supplier: campos.proveedor ? campos.proveedor.stringValue : "Glam Cloud",
-                      // ¡Usamos la imagen real descargada!
-                      img: imagenProd 
-                  });
-              });
+        } catch (error) {
+            console.error("Error cargando datos:", error);
+        }
+    }
 
-              if (productosNuevos.length > 0) {
-                  STATE.inventory = productosNuevos;
-                  // Refrescamos pantallas de forma segura
-                  if (typeof filterShop === "function") filterShop('all');
-                  if (typeof filterInventory === "function") filterInventory();
-                  console.log("¡Inventario sincronizado con fotos reales!");
-              }
-          }
-      } catch (error) {
-          console.error("Error cargando de Firebase:", error);
-      }
-  }
-
-  // Arrancamos la lectura
-  cargarInventarioDirecto();
+    // Ejecutar al cargar
+    cargarTodoDesdeNube();
 </script>
