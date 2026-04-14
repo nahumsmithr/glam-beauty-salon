@@ -2828,11 +2828,7 @@
             }
         };
 
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-            <script type="module">
+        <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
       import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
@@ -2851,13 +2847,14 @@
       
       async function cargarInventarioDesdeNube() {
           try {
-              const cajaProductos = await getDocs(collection(db, "productos"));
+              // ¡AQUÍ ESTÁ LA CORRECCIÓN! Todo en minúsculas exactamente como en tu foto
+              const cajaProductos = await getDocs(collection(db, "producto"));
               const productosNuevos = [];
 
               cajaProductos.forEach((doc) => {
                   let datos = doc.data();
                   productosNuevos.push({
-                      id: doc.id, // ID único de Firebase
+                      id: doc.id,
                       name: datos.nombre || datos.name || "Producto Sin Nombre", 
                       stock: Number(datos.cantidad || datos.stock || 0),
                       price: Number(datos.precio || datos.price || 0),
@@ -2869,14 +2866,11 @@
               });
 
               if (productosNuevos.length > 0) {
-                  // Forzamos la actualización de tu variable STATE
                   STATE.inventory = productosNuevos;
                   
-                  // Forzamos la actualización de las pantallas
                   if (typeof window.filterShop === "function") { window.filterShop('all'); } else { filterShop('all'); }
                   if (typeof window.filterInventory === "function") { window.filterInventory(); } else { filterInventory(); }
                   
-                  // ALERTA DE ÉXITO
                   Swal.fire({
                       title: '¡Nube Conectada!',
                       text: `Se cargaron ${productosNuevos.length} productos desde Firebase.`,
@@ -2885,19 +2879,17 @@
                       showConfirmButton: false
                   });
               } else {
-                  // ALERTA DE CAJA VACÍA
-                  Swal.fire('Base de datos conectada', 'Pero la caja "productos" está vacía.', 'info');
+                  Swal.fire('Base de datos conectada', 'Pero la caja "producto" sigue vacía.', 'info');
               }
           } catch (error) {
-              // ALERTA DE ERROR
               console.error(error);
               Swal.fire('Error de Firebase', error.message, 'error');
           }
       }
 
-      // Ejecutamos la función
       cargarInventarioDesdeNube();
     </script>
+
 
 </body>
 </html>
