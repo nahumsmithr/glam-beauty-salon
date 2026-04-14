@@ -1692,13 +1692,142 @@
     }
 
     /* ==========================================================================
-       8. ADMINISTRACIÓN, RRHH Y NÓMINA (SISTEMA DE COMISIONES INTEGRADO)
+       8. ADMINISTRACIÓN Y GESTIÓN (BLOQUE MAESTRO CORREGIDO)
        ========================================================================== */
-function renderAdmin() {
-  
-   /* ==========================================================================
-       FUNCIÓN DE ENTRADA/SALIDA (CLOCK IN) SINCRONIZADA CON FIREBASE
-       ========================================================================== */
+    function renderAdmin() {
+        const hoyObj = new Date(); 
+        const hoyStrLocal = hoyObj.toLocaleDateString(); 
+        const hoyStrISO = hoyObj.toISOString().split("T")[0]; 
+        
+        // 1. Contadores superiores
+        let totalVentasHoy = 0; 
+        STATE.sales.forEach(s => { if (s.date === hoyStrLocal) totalVentasHoy++; });
+        
+        if(document.getElementById('adm-caja')) 
+            document.getElementById('adm-caja').innerText = `RD$ ${STATE.caja.toLocaleString(undefined, {minimumFractionDigits: 2})}`; 
+        if(document.getElementById('adm-sales-count')) 
+            document.getElementById('adm-sales-count').innerText = totalVentasHoy;
+        
+        const activos = STATE.staff.filter(s => s.status === 'Online' || s.status === 'Activo').length;
+        if(document.getElementById('adm-staff-count')) 
+            document.getElementById('adm-staff-count').innerText = activos;
+        
+        // 2. Lista de Staff
+        let htmlStaff = '';
+        STATE.staff.forEach((s, i) => { 
+            const estaActivo = (s.status === 'Online' || s.status === 'Activo');
+            
+            let citasHoy = STATE.appts.filter(a => a.stylist === s.name && a.date === hoyStrISO).length;
+            let ventasStaffHoy = 0; 
+            STATE.sales.forEach(venta => { 
+                if (venta.client === `Servicio Salon - ${s.name}` && venta.date === hoyStrLocal) { 
+                    ventasStaffHoy += parseFloat(venta.total); 
+                } 
+            });
+
+            htmlStaff += `
+            <div class="staff-card-vip border mb-2 shadow-sm p-3 bg-white rounded-4">
+                <div class="d-flex align-items-center mb-2">
+                    <img src="${s.img || 'https://via.placeholder.com/150'}" class="staff-img" style="width:50px; height:50px; border-radius:12px; object-fit:cover; margin-right:12px; border:2px solid ${estaActivo ? '#FF1493':'#ccc'}">
+                    <div class="flex-grow-1">
+                        <h6 class="fw-bold mb-0" style="font-size:14px">
+                            <span class="status-dot ${estaActivo ? 'online' : 'offline'}"></span> ${s.name}
+                        </h6>
+                        <small class="${estaActivo ? 'text-success fw-bold' : 'text-muted'}" style="font-size:11px">
+                            ${estaActivo ? 'TRABAJANDO' : 'INACTIVO'}
+                        </small>
+                    </div>
+                </div>
+                <div class="row g-1 text-center bg-light rounded py-1 border mb-2">
+                    <div class="col-6 border-end"><small style="font-size:9px">CITAS: ${citasHoy}</small></div>
+                    <div class="col-6"><small style="font-size:9px">HOY: RD$ ${ventasStaffHoy.toLocaleString()}</small></div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn ${estaActivo ? 'btn-dark' : 'btn-glam'} btn-sm rounded-pill fw-bold flex-grow-1" 
+                            style="font-size:10px;" onclick="window.staffClockIn(${i})">
+                        ${estaActivo ? 'SALIDA' : 'ENTRADA'}
+                    </button>
+                    <button class="btn btn-outline-dark btn-sm rounded-pill flex-grow-1" 
+                            style="font-size:10px;" onclick="addManualStaffSale('${s.id}')">
+                        + VENTA
+                    </button>
+                </div>
+            </div>`; 
+        });
+        document.getElementById('adm-staff-list').innerHTML = htmlStaff;
+
+        // 3. Agenda
+        const citasDeHoy = STATE.appts.filter(a => a.date === hoyStrISO);
+        let htmlAgenda = '';
+        if (citasDeHoy.length === 0) {
+            htmlAgenda = `<div class="text-center p-3 text-muted small">Sin citas para hoy</div>`;
+        } else {
+            citasDeHoy.forEach(a => {
+                htmlAgenda += `
+                <div class="p-2 mb-2 bg-light border-start border-pink border-4 rounded d-flex justify-content-between align-items-center shadow-sm">
+                    <div style="font-size:11px">
+                        <b class="text-pink">${a.time}</b> - ${a.stylist}
+                    </div>
+                    <button class="btn btn-sm text-danger p-0" onclick="deleteAppt('${a.id}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>`;
+            });
+        }
+        document.getElementById('adm-agenda-list').innerHTML = htmlAgenda;
+        if (typeof renderChart === "function") renderChart();
+    }
+
+    function addManualStaffSale(firebaseId) {
+        const staff = STATE.staff.find(s => s.id === firebaseId); 
+        if(!staff) return;
+        Swal.fire({ 
+            title: `Venta: ${staff.name}`, 
+            input: 'number', 
+            inputPlaceholder: 'Monto RD$', 
+            showCancelButton: true,
+            confirmButtonColor: '#FF1493'
+        }).then((r) => { 
+            if (r.isConfirmed && r.value > 0) { 
+                const monto = parseFloat(r.value); 
+                STATE.caja += monto; 
+                STATE.sales.push({ 
+                    ncf: "MAN-" + Math.floor(Math.random() * 900000), 
+                    tipoFactura: 'B02', 
+                    client: `Servicio Salon - ${staff.name}`, 
+                    total: monto.toFixed(2), 
+                    method: "Efectivo", 
+                    time: new Date().toLocaleTimeString(), 
+                    date: new Date().toLocaleDateString(), 
+                    pagada: false, 
+                    cart: [] 
+                }); 
+                save(); 
+                renderAdmin(); 
+                Swal.fire('¡Venta Sumada!', '', 'success'); 
+            } 
+        });
+    }
+
+    async function deleteAppt(id) {
+        const result = await Swal.fire({
+            title: '¿Eliminar cita?',
+            text: "Se borrará de la nube",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33'
+        });
+        if (result.isConfirmed) {
+            try {
+                const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/cita/${id}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+                await fetch(url, { method: 'DELETE' });
+                STATE.appts = STATE.appts.filter(x => x.id !== id);
+                save();
+                renderAdmin();
+                Swal.fire('Eliminada', '', 'success');
+            } catch(e) { Swal.fire('Error', 'No se pudo eliminar', 'error'); }
+        }
+    }
     window.staffClockIn = async function(index) {
         const employee = STATE.staff[index];
         if(!employee) return;
