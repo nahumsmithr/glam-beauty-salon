@@ -1433,8 +1433,11 @@
         });
     }
 
- async function addProduct() {
-    // Calculamos la fecha de hoy para auto-llenar
+// ==========================================
+// FUNCIÓN 1: AGREGAR PRODUCTO (INVENTARIO PRO)
+// ==========================================
+async function addProduct() {
+    // Obtenemos la fecha de hoy para la "Fecha Ingreso"
     const fechaHoy = new Date().toISOString().split('T')[0];
 
     const { value: formValues } = await Swal.fire({
@@ -1530,11 +1533,10 @@
             if (file) { 
                 try { 
                     Swal.showLoading(); 
+                    // Se llama a tu promesa para minimizar (400px)
                     imgBase64 = await comprimirYConvertirABase64(file, 400); 
-                    console.log("¡Foto convertida a texto exitosamente!");
                 } catch(e) {
-                    console.error("Error procesando imagen:", e);
-                    Swal.showValidationMessage("Hubo un error con la foto. Intenta con otra.");
+                    Swal.showValidationMessage("Error al comprimir la foto.");
                     return false;
                 } 
             }
@@ -1556,12 +1558,13 @@
     if (formValues) { 
         Swal.fire({
             title: 'Conectando con Google Cloud...',
-            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i><br><small class="text-muted">Esto puede tomar unos segundos si la foto es grande.</small>',
+            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i><br><small class="text-muted">Procesando imagen y datos...</small>',
             allowOutsideClick: false,
             showConfirmButton: false
         });
 
         try {
+            // Estructura exacta para Firestore REST API
             const datosFirebase = {
                 fields: {
                     nombre: { stringValue: formValues.name },
@@ -1593,7 +1596,7 @@
                 const rutaId = data.name.split('/');
                 const idRealFirebase = rutaId[rutaId.length - 1];
 
-                // Sincronización Inmediata Frontend
+                // ACTULIZACIÓN EN TIEMPO REAL AL STATE
                 STATE.inventory.push({ 
                     id: 5000 + STATE.inventory.length + 1, 
                     firebaseId: idRealFirebase, 
@@ -1604,12 +1607,57 @@
                 if (typeof filterInventory === "function") filterInventory(); 
                 if (typeof filterShop === "function") filterShop('all'); 
                 
-                Swal.fire('¡Magia! ☁️', 'El producto y sus datos están a salvo en la nube.', 'success'); 
+                Swal.fire('¡Magia! ☁️', 'Producto guardado con éxito.', 'success'); 
             } else {
-                throw new Error("Google rechazó los datos.");
+                throw new Error("Rechazado por Firebase.");
             }
         } catch(e) {
-            Swal.fire('Error de Conexión', 'No pudimos subir el producto: ' + e.message, 'error');
+            Swal.fire('Error', 'No pudimos subir el producto: ' + e.message, 'error');
+        }
+    }
+}
+
+// ==========================================
+// FUNCIÓN 2: BORRAR PRODUCTO (TIEMPO REAL)
+// ==========================================
+async function deleteProduct(firebaseId) {
+    const confirm = await Swal.fire({
+        title: '¿Eliminar producto?',
+        text: "Desaparecerá de la nube y del inventario de inmediato.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '<i class="fas fa-trash"></i> Sí, borrar'
+    });
+
+    if (confirm.isConfirmed) {
+        try {
+            Swal.fire({
+                title: 'Borrando...',
+                html: '<i class="fas fa-spinner fa-spin fa-2x text-danger"></i>',
+                allowOutsideClick: false,
+                showConfirmButton: false
+            });
+
+            const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${firebaseId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+            
+            const respuesta = await fetch(url, { method: 'DELETE' });
+
+            if (respuesta.ok) {
+                // TIEMPO REAL: Se saca del STATE y se refrescan las vistas al instante
+                STATE.inventory = STATE.inventory.filter(prod => prod.firebaseId !== firebaseId);
+                
+                if (typeof save === "function") save();
+                if (typeof filterInventory === "function") filterInventory(); 
+                if (typeof filterShop === "function") filterShop('all'); 
+                
+                Swal.fire('¡Eliminado!', 'Borrado de Firebase con éxito.', 'success');
+            } else {
+                throw new Error("Fallo al eliminar en la nube.");
+            }
+        } catch (e) {
+            Swal.fire('Error', 'No se pudo eliminar: ' + e.message, 'error');
         }
     }
 }
