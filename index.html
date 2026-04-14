@@ -3366,7 +3366,7 @@ window.openQuickEdit = async function(id) {
     const prod = STATE.inventory.find(p => p.id === id); 
     if (!prod) return;
     
-    const fireId = prod.firebaseId; // Obtenemos el ID de la nube
+    const fireId = prod.firebaseId;
 
     const { value: formValues } = await Swal.fire({
         title: 'EDICIÓN Y CONTROL',
@@ -3386,7 +3386,7 @@ window.openQuickEdit = async function(id) {
 
               <h6 class="fw-bold text-pink border-bottom pb-1">Actualizar Información</h6>
               <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Precio (RD$):</label><input type="number" id="e-price" class="form-control form-control-sm" value="${prod.price}"></div>
+                  <div class="col-6"><label class="small fw-bold">Precio (RD$):</label><input type="number" id="e-price" class="form-control form-control-sm" value="${prod.price || prod.precio || 0}"></div>
                   <div class="col-6"><label class="small fw-bold">Límite MAX:</label><input type="number" id="e-max" class="form-control form-control-sm" value="${prod.maxStock || 50}"></div>
               </div>
               <div class="row g-2 mb-2">
@@ -3408,23 +3408,18 @@ window.openQuickEdit = async function(id) {
           </div>`,
         showCancelButton: true, confirmButtonText: 'Guardar Cambios', confirmButtonColor: '#FF1493', cancelButtonText: 'Cancelar', width: '500px',
         didOpen: () => {
-            document.getElementById('btn-delete-real').addEventListener('click', () => {
-                Swal.fire({ 
+            document.getElementById('btn-delete-real').onclick = async () => {
+                const res = await Swal.fire({ 
                     title: '¿Borrar definitivamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, borrar' 
-                }).then(async (res) => {
-                    if (res.isConfirmed) { 
-                        // BORRADO EN LA NUBE FIREBASE
-                        if(fireId) {
-                            Swal.fire({title: 'Borrando...', didOpen: () => Swal.showLoading()});
-                            await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' });
-                        }
-                        STATE.inventory = STATE.inventory.filter(p => p.id !== id); 
-                        if (typeof save === "function") save(); 
-                        if (typeof filterInventory === "function") filterInventory(); 
-                        Swal.fire('Borrado', 'El producto ha sido eliminado.', 'success'); 
-                    }
                 });
-            });
+                if (res.isConfirmed) { 
+                    if(fireId) {
+                        await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' });
+                    }
+                    STATE.inventory = STATE.inventory.filter(p => p.id !== id); 
+                    save(); filterInventory(); Swal.fire('Borrado', 'Eliminado con éxito', 'success'); 
+                }
+            };
         },
         preConfirm: () => {
             const p = parseFloat(document.getElementById('e-price').value); 
@@ -3433,32 +3428,42 @@ window.openQuickEdit = async function(id) {
             const minus = parseInt(document.getElementById('e-minus').value) || 0;
             const currentStock = parseInt(prod.stock || prod.cantidad || 0);
             
-            if (isNaN(p) || p <= 0 || isNaN(max)) { Swal.showValidationMessage("Los valores deben ser números válidos"); return false; }
+            if (isNaN(p) || p <= 0 || isNaN(max)) { Swal.showValidationMessage("Datos inválidos"); return false; }
             const newStock = currentStock + add - minus;
-            if (newStock < 0) { Swal.showValidationMessage("No puedes restar más productos de los que tienes"); return false; }
-            if (newStock > max) { Swal.showValidationMessage(`Límite superado. Intento: ${newStock}, Límite: ${max}.`); return false; }
+            if (newStock < 0) { Swal.showValidationMessage("Stock insuficiente"); return false; }
 
             return { 
-                newStock, price: p, maxStock: max, orderDate: document.getElementById('e-order-date').value, expDate: document.getElementById('e-expdate').value, 
-                supplier: document.getElementById('e-supplier').value, supplierContact: document.getElementById('e-contact').value, 
-                supplierPhone: document.getElementById('e-phone').value, supplierCode: document.getElementById('e-code').value 
+                stock: newStock, price: p, maxStock: max, 
+                orderDate: document.getElementById('e-order-date').value, 
+                expDate: document.getElementById('e-expdate').value, 
+                supplier: document.getElementById('e-supplier').value, 
+                supplierContact: document.getElementById('e-contact').value, 
+                supplierPhone: document.getElementById('e-phone').value, 
+                supplierCode: document.getElementById('e-code').value 
             };
         }
     });
     
     if (formValues) { 
-        Swal.fire({title: 'Actualizando Nube...', didOpen: () => Swal.showLoading()});
+        Swal.fire({title: 'Sincronizando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
         
-        prod.stock = formValues.newStock; prod.price = formValues.price; prod.maxStock = formValues.maxStock; prod.orderDate = formValues.orderDate; 
-        prod.expDate = formValues.expDate; prod.supplier = formValues.supplier; prod.supplierContact = formValues.supplierContact; 
-        prod.supplierPhone = formValues.supplierPhone; prod.supplierCode = formValues.supplierCode; 
-        
-        // ACTUALIZACIÓN DE DATOS (EDICIÓN) EN FIREBASE
+        // 1. Actualizar objeto local con AMBOS nombres (para evitar errores de recarga)
+        prod.stock = prod.cantidad = formValues.stock;
+        prod.price = prod.precio = formValues.price;
+        prod.maxStock = formValues.maxStock;
+        prod.orderDate = prod.fechaIngreso = formValues.orderDate;
+        prod.expDate = prod.fechaVence = formValues.expDate;
+        prod.supplier = prod.proveedor = formValues.supplier;
+        prod.supplierContact = prod.representante = formValues.supplierContact;
+        prod.supplierPhone = prod.telefonoProv = formValues.supplierPhone;
+        prod.supplierCode = prod.skuFabrica = formValues.supplierCode;
+
+        // 2. Parchear Firebase (Esperar a que termine ANTES de hacer save())
         if(fireId) {
              const patchPayload = {
                  fields: {
                      precio: { doubleValue: Number(formValues.price) },
-                     cantidad: { integerValue: formValues.newStock.toString() },
+                     cantidad: { integerValue: formValues.stock.toString() },
                      maxStock: { integerValue: formValues.maxStock.toString() },
                      proveedor: { stringValue: formValues.supplier },
                      representante: { stringValue: formValues.supplierContact },
@@ -3468,15 +3473,16 @@ window.openQuickEdit = async function(id) {
                      fechaVence: { stringValue: formValues.expDate }
                  }
              };
-             await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?updateMask.fieldPaths=precio&updateMask.fieldPaths=cantidad&updateMask.fieldPaths=maxStock&updateMask.fieldPaths=proveedor&updateMask.fieldPaths=representante&updateMask.fieldPaths=telefonoProv&updateMask.fieldPaths=skuFabrica&updateMask.fieldPaths=fechaIngreso&updateMask.fieldPaths=fechaVence&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, {
-                 method: 'PATCH',
-                 body: JSON.stringify(patchPayload)
-             });
+             
+             try {
+                 const upUrl = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?updateMask.fieldPaths=precio&updateMask.fieldPaths=cantidad&updateMask.fieldPaths=maxStock&updateMask.fieldPaths=proveedor&updateMask.fieldPaths=representante&updateMask.fieldPaths=telefonoProv&updateMask.fieldPaths=skuFabrica&updateMask.fieldPaths=fechaIngreso&updateMask.fieldPaths=fechaVence&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+                 await fetch(upUrl, { method: 'PATCH', body: JSON.stringify(patchPayload) });
+             } catch(e) { console.error("Error nube:", e); }
         }
         
-        if (typeof save === "function") save(); 
-        if (typeof filterInventory === "function") filterInventory(); 
-        Swal.fire('Éxito', 'Inventario actualizado.', 'success'); 
+        save(); // Ahora sí guardamos en localstorage lo que ya está en la nube
+        filterInventory(); 
+        Swal.fire('Éxito', 'Inventario actualizado en la nube.', 'success'); 
     }
 };
     </script>
