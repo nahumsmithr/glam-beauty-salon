@@ -3161,4 +3161,231 @@
 
     // Arrancamos la carga masiva
     cargarTodoDesdeNube();
+    // =======================================================================
+// 🚀 VACUNA DE EMERGENCIA GLAM OS - DESTRUYE CLONES Y ACTIVA MODO OSCURO
+// =======================================================================
+
+window.addProduct = async function() {
+    const fechaHoy = new Date().toISOString().split('T')[0];
+
+    const { value: formValues } = await Swal.fire({
+        title: '<h3 class="text-pink fw-bold mb-0"><i class="fas fa-boxes me-2"></i>NUEVO PRODUCTO</h3>',
+        background: '#1e1e2d', 
+        color: '#ffffff', 
+        width: '600px',
+        customClass: { popup: 'rounded-4 shadow-lg border border-secondary' },
+        html: `
+          <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
+              <h6 class="fw-bold text-pink border-bottom border-secondary pb-1">1. Datos Principales</h6>
+              <div class="row g-2 mb-3">
+                  <div class="col-5">
+                      <label class="small fw-bold text-light">Serial Internal <span class="text-danger">*</span></label>
+                      <input id="np-serial" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ej: KER-101">
+                  </div>
+                  <div class="col-7">
+                      <label class="small fw-bold text-light">Nombre del Producto <span class="text-danger">*</span></label>
+                      <input id="np-name" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ej: Shampoo Kérastase">
+                  </div>
+              </div>
+              <div class="row g-2 mb-3">
+                  <div class="col-4">
+                      <label class="small fw-bold text-light">Precio (RD$) <span class="text-danger">*</span></label>
+                      <input id="np-price" type="number" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="0">
+                  </div>
+                  <div class="col-4">
+                      <label class="small fw-bold text-light">Stock Inicial:</label>
+                      <input id="np-stock" type="number" class="form-control form-control-sm bg-dark text-white border-secondary" value="0">
+                  </div>
+                  <div class="col-4">
+                      <label class="small fw-bold text-danger">Stock MÁX <span class="text-danger">*</span></label>
+                      <input id="np-max" type="number" class="form-control form-control-sm bg-dark text-white border-secondary" value="50">
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <label class="small fw-bold text-light">Categoría:</label>
+                  <select id="np-cat" class="form-select form-select-sm bg-dark text-white border-secondary">
+                      <option>Pelo</option><option>Uñas</option><option>Tintes</option><option>Piel</option><option>Perfumes</option><option>General</option>
+                  </select>
+              </div>
+
+              <h6 class="fw-bold text-pink border-bottom border-secondary pb-1 mt-4">2. Datos de Proveedor</h6>
+              <div class="row g-2 mb-3">
+                  <div class="col-6">
+                      <label class="small fw-bold text-light">Empresa:</label>
+                      <input id="np-supplier" type="text" class="form-control form-control-sm bg-dark text-white border-secondary">
+                  </div>
+                  <div class="col-6">
+                      <label class="small fw-bold text-light">Cód. SKU Fábrica:</label>
+                      <input id="np-supp-code" type="text" class="form-control form-control-sm bg-dark text-white border-secondary">
+                  </div>
+                  <div class="col-6">
+                      <label class="small fw-bold text-light">Representante:</label>
+                      <input id="np-rep" type="text" class="form-control form-control-sm bg-dark text-white border-secondary">
+                  </div>
+                  <div class="col-6">
+                      <label class="small fw-bold text-light">Teléfono Prov.:</label>
+                      <input id="np-tel" type="text" class="form-control form-control-sm bg-dark text-white border-secondary">
+                  </div>
+              </div>
+
+              <h6 class="fw-bold text-pink border-bottom border-secondary pb-1 mt-4">3. Fechas de Control</h6>
+              <div class="row g-2 mb-3">
+                  <div class="col-6">
+                      <label class="small fw-bold text-light">Fecha Ingreso:</label>
+                      <input id="np-ingreso" type="date" class="form-control form-control-sm bg-dark text-white border-secondary" value="${fechaHoy}">
+                  </div>
+                  <div class="col-6">
+                      <label class="small fw-bold text-light">Fecha Vencimiento:</label>
+                      <input id="np-vence" type="date" class="form-control form-control-sm bg-dark text-white border-secondary">
+                  </div>
+              </div>
+
+              <h6 class="fw-bold text-pink border-bottom border-secondary pb-1 mt-4">4. Fotografía Real</h6>
+              <p class="text-muted small mb-2"><i class="fas fa-info-circle text-pink"></i> La imagen se comprimirá automáticamente.</p>
+              <input type="file" id="np-img-file" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" accept="image/*">
+          </div>`,
+        showCancelButton: true, 
+        confirmButtonColor: '#e83e8c', 
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Subir a la Nube ☁️', 
+        cancelButtonText: 'Cancelar',
+        preConfirm: async () => {
+            const serial = document.getElementById('np-serial').value.trim(); 
+            const name = document.getElementById('np-name').value.trim(); 
+            const price = parseFloat(document.getElementById('np-price').value); 
+            const maxStock = parseInt(document.getElementById('np-max').value);
+            const stock = parseInt(document.getElementById('np-stock').value) || 0; 
+            const file = document.getElementById('np-img-file').files[0];
+            
+            if (!name || isNaN(price) || !serial || isNaN(maxStock)) { 
+                Swal.showValidationMessage("Faltan los campos obligatorios (*)"); 
+                return false; 
+            }
+            
+            let imgBase64 = 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'; 
+            if (file) { 
+                try { 
+                    Swal.showLoading(); 
+                    if(typeof comprimirYConvertirABase64 === "function") {
+                        imgBase64 = await comprimirYConvertirABase64(file, 400); 
+                    } else {
+                        throw new Error("Función de compresión no encontrada");
+                    }
+                } catch(e) {
+                    Swal.showValidationMessage("Error al comprimir la foto.");
+                    return false;
+                } 
+            }
+            
+            return { 
+                serial, name, price, stock, maxStock, 
+                cat: document.getElementById('np-cat').value, 
+                supplier: document.getElementById('np-supplier').value.trim(), 
+                suppCode: document.getElementById('np-supp-code').value.trim(),
+                rep: document.getElementById('np-rep').value.trim(),
+                tel: document.getElementById('np-tel').value.trim(),
+                ingreso: document.getElementById('np-ingreso').value,
+                vence: document.getElementById('np-vence').value,
+                img: imgBase64 
+            };
+        }
+    });
+    
+    if (formValues) { 
+        Swal.fire({
+            title: 'Conectando...',
+            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i><br><small class="text-muted">Subiendo a Firebase...</small>',
+            background: '#1e1e2d', color: '#ffffff',
+            allowOutsideClick: false, showConfirmButton: false
+        });
+
+        try {
+            const datosFirebase = {
+                fields: {
+                    nombre: { stringValue: formValues.name },
+                    precio: { doubleValue: Number(formValues.price) },
+                    cantidad: { integerValue: formValues.stock.toString() },
+                    maxStock: { integerValue: formValues.maxStock.toString() },
+                    categoria: { stringValue: formValues.cat },
+                    serial: { stringValue: formValues.serial },
+                    proveedor: { stringValue: formValues.supplier },
+                    skuFabrica: { stringValue: formValues.suppCode },
+                    representante: { stringValue: formValues.rep },
+                    telefonoProv: { stringValue: formValues.tel },
+                    fechaIngreso: { stringValue: formValues.ingreso },
+                    fechaVence: { stringValue: formValues.vence },
+                    img: { stringValue: formValues.img } 
+                }
+            };
+
+            const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+            const respuesta = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosFirebase)
+            });
+
+            if (respuesta.ok) {
+                const data = await respuesta.json();
+                const idRealFirebase = data.name.split('/').pop();
+
+                STATE.inventory.push({ 
+                    id: 5000 + STATE.inventory.length + 1, 
+                    firebaseId: idRealFirebase, 
+                    ...formValues 
+                }); 
+                
+                if (typeof save === "function") save(); 
+                if (typeof filterInventory === "function") filterInventory(); 
+                if (typeof filterShop === "function") filterShop('all'); 
+                
+                Swal.fire({title: '¡Magia! ☁️', text: 'Guardado con éxito.', icon: 'success', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'}); 
+            } else {
+                throw new Error("Rechazado por Firebase.");
+            }
+        } catch(e) {
+            Swal.fire({title: 'Error', text: e.message, icon: 'error', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
+        }
+    }
+};
+
+window.deleteProduct = async function(firebaseId) {
+    const confirm = await Swal.fire({
+        title: '¿Eliminar producto?',
+        text: "Desaparecerá de la nube y del inventario.",
+        icon: 'warning',
+        background: '#1e1e2d', color: '#ffffff',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash"></i> Sí, borrar'
+    });
+
+    if (confirm.isConfirmed) {
+        try {
+            Swal.fire({
+                title: 'Borrando...',
+                html: '<i class="fas fa-spinner fa-spin fa-2x text-danger"></i>',
+                background: '#1e1e2d', color: '#ffffff',
+                allowOutsideClick: false, showConfirmButton: false
+            });
+
+            const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${firebaseId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+            const respuesta = await fetch(url, { method: 'DELETE' });
+
+            if (respuesta.ok) {
+                STATE.inventory = STATE.inventory.filter(prod => prod.firebaseId !== firebaseId);
+                if (typeof save === "function") save();
+                if (typeof filterInventory === "function") filterInventory(); 
+                if (typeof filterShop === "function") filterShop('all'); 
+                
+                Swal.fire({title: '¡Eliminado!', text: 'Borrado de Firebase con éxito.', icon: 'success', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
+            } else {
+                throw new Error("Fallo al eliminar en la nube.");
+            }
+        } catch (e) {
+            Swal.fire({title: 'Error', text: e.message, icon: 'error', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
+        }
+    }
+};
     </script>
