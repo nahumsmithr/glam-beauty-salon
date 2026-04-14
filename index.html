@@ -2835,7 +2835,6 @@
 <script>
   async function cargarInventarioDirecto() {
       try {
-          // Llamada súper rápida a los servidores de Google
           const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto";
           const respuesta = await fetch(url);
           const datos = await respuesta.json();
@@ -2843,19 +2842,21 @@
           if (datos && datos.documents) {
               const productosNuevos = [];
 
-              // Procesamos el Gotero y lo que haya en la nube
-              datos.documents.forEach(doc => {
+              datos.documents.forEach((doc, index) => {
                   const rutaId = doc.name.split('/');
                   const idReal = rutaId[rutaId.length - 1];
                   const campos = doc.fields || {};
                   
-                  // Protecciones para que el panel de Admin no explote si faltan datos
                   const nombreProd = campos.nombre ? (campos.nombre.stringValue || "Sin Nombre") : "Producto";
                   const cantidadProd = campos.cantidad ? (campos.cantidad.stringValue || campos.cantidad.integerValue || "0") : "0";
                   const precioProd = campos.precio ? (campos.precio.stringValue || campos.precio.integerValue || "0") : "0";
 
+                  // TRUCO MAESTRO: Le damos un ID numérico para que tus botones no se rompan
+                  const idNumerico = 5000 + index; 
+
                   productosNuevos.push({
-                      id: idReal,
+                      id: idNumerico, // Ahora el carrito lo verá como un número normal
+                      firebaseId: idReal, // Guardamos el código real escondido por si acaso
                       serial: "FB-" + idReal.substring(0,4),
                       name: nombreProd,
                       price: Number(precioProd),
@@ -2865,16 +2866,16 @@
                       supplier: "Glam Cloud",
                       supplierContact: "N/A",
                       supplierCode: "N/A",
-                      img: "https://images.unsplash.com/photo-1584949504125-51d8d814ae3d?w=400"
+                      // Foto genérica de Glam por defecto para evitar errores:
+                      img: "https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique"
                   });
               });
 
-              // Si encontró productos, los inyecta a tu web
               if (productosNuevos.length > 0) {
                   STATE.inventory = productosNuevos;
                   if (typeof filterShop === "function") filterShop('all');
                   if (typeof filterInventory === "function") filterInventory();
-                  console.log("¡El inventario bajó de la nube exitosamente!");
+                  console.log("¡El inventario bajó con IDs corregidos!");
               }
           }
       } catch (error) {
@@ -2882,7 +2883,6 @@
       }
   }
 
-  // Se ejecuta de fondo sin interrumpir al usuario
   cargarInventarioDirecto();
 </script>
 
