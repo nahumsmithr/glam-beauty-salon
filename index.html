@@ -3161,11 +3161,14 @@
 
     // Arrancamos la carga masiva
     cargarTodoDesdeNube();
-    // =======================================================================
-// MOTOR DE COMPRESIÓN DE IMÁGENES (PARA QUE NO EXPLOTE LA BASE DE DATOS)
+ // =======================================================================
+// 🚀 SOLUCIÓN DEFINITIVA GLAM OS: COMPRESIÓN + BASE DE DATOS
 // =======================================================================
+
+// 1. EL MOTOR DE COMPRESIÓN (Garantizado que lo encuentre)
 window.comprimirYConvertirABase64 = function(file, maxDimension) {
     return new Promise((resolve, reject) => {
+        if (!file) { reject("No hay archivo"); return; }
         const reader = new FileReader();
         reader.readAsDataURL(file); 
         reader.onload = (event) => {
@@ -3175,31 +3178,25 @@ window.comprimirYConvertirABase64 = function(file, maxDimension) {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-
                 if (width > height) {
                     if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
                 } else {
                     if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
                 }
-
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height); 
-
-                // Convierte a texto JPEG comprimido al 70% de calidad
                 const base64Comprimido = canvas.toDataURL('image/jpeg', 0.7);
                 resolve(base64Comprimido);
             };
-            img.onerror = (e) => reject("Error al cargar la imagen");
+            img.onerror = () => reject("Error al generar imagen");
         };
-        reader.onerror = (e) => reject("Error al leer el archivo");
+        reader.onerror = () => reject("Error al leer archivo");
     });
 };
-    // =======================================================================
-// 🚀 VACUNA DE EMERGENCIA GLAM OS - DESTRUYE CLONES Y ACTIVA MODO OSCURO
-// =======================================================================
 
+// 2. LA FUNCIÓN DE NUEVO PRODUCTO
 window.addProduct = async function() {
     const fechaHoy = new Date().toISOString().split('T')[0];
 
@@ -3214,17 +3211,17 @@ window.addProduct = async function() {
               <h6 class="fw-bold text-pink border-bottom border-secondary pb-1">1. Datos Principales</h6>
               <div class="row g-2 mb-3">
                   <div class="col-5">
-                      <label class="small fw-bold text-light">Serial Internal <span class="text-danger">*</span></label>
+                      <label class="small fw-bold text-light">Serial <span class="text-danger">*</span></label>
                       <input id="np-serial" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ej: KER-101">
                   </div>
                   <div class="col-7">
-                      <label class="small fw-bold text-light">Nombre del Producto <span class="text-danger">*</span></label>
+                      <label class="small fw-bold text-light">Nombre <span class="text-danger">*</span></label>
                       <input id="np-name" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ej: Shampoo Kérastase">
                   </div>
               </div>
               <div class="row g-2 mb-3">
                   <div class="col-4">
-                      <label class="small fw-bold text-light">Precio (RD$) <span class="text-danger">*</span></label>
+                      <label class="small fw-bold text-light">Precio <span class="text-danger">*</span></label>
                       <input id="np-price" type="number" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="0">
                   </div>
                   <div class="col-4">
@@ -3250,7 +3247,7 @@ window.addProduct = async function() {
                       <input id="np-supplier" type="text" class="form-control form-control-sm bg-dark text-white border-secondary">
                   </div>
                   <div class="col-6">
-                      <label class="small fw-bold text-light">Cód. SKU Fábrica:</label>
+                      <label class="small fw-bold text-light">SKU Fábrica:</label>
                       <input id="np-supp-code" type="text" class="form-control form-control-sm bg-dark text-white border-secondary">
                   </div>
                   <div class="col-6">
@@ -3276,7 +3273,7 @@ window.addProduct = async function() {
               </div>
 
               <h6 class="fw-bold text-pink border-bottom border-secondary pb-1 mt-4">4. Fotografía Real</h6>
-              <p class="text-muted small mb-2"><i class="fas fa-info-circle text-pink"></i> La imagen se comprimirá automáticamente.</p>
+              <p class="text-muted small mb-2"><i class="fas fa-info-circle text-pink"></i> Selecciona la foto.</p>
               <input type="file" id="np-img-file" class="form-control form-control-sm bg-dark text-white border-secondary mb-1" accept="image/*">
           </div>`,
         showCancelButton: true, 
@@ -3301,13 +3298,10 @@ window.addProduct = async function() {
             if (file) { 
                 try { 
                     Swal.showLoading(); 
-                    if(typeof comprimirYConvertirABase64 === "function") {
-                        imgBase64 = await comprimirYConvertirABase64(file, 400); 
-                    } else {
-                        throw new Error("Función de compresión no encontrada");
-                    }
+                    // AQUÍ LLAMA AL MOTOR QUE ESTÁ ARRIBA
+                    imgBase64 = await window.comprimirYConvertirABase64(file, 400); 
                 } catch(e) {
-                    Swal.showValidationMessage("Error al comprimir la foto.");
+                    Swal.showValidationMessage("Error interno al comprimir la foto: " + e);
                     return false;
                 } 
             }
@@ -3379,46 +3373,6 @@ window.addProduct = async function() {
                 throw new Error("Rechazado por Firebase.");
             }
         } catch(e) {
-            Swal.fire({title: 'Error', text: e.message, icon: 'error', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
-        }
-    }
-};
-
-window.deleteProduct = async function(firebaseId) {
-    const confirm = await Swal.fire({
-        title: '¿Eliminar producto?',
-        text: "Desaparecerá de la nube y del inventario.",
-        icon: 'warning',
-        background: '#1e1e2d', color: '#ffffff',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: '<i class="fas fa-trash"></i> Sí, borrar'
-    });
-
-    if (confirm.isConfirmed) {
-        try {
-            Swal.fire({
-                title: 'Borrando...',
-                html: '<i class="fas fa-spinner fa-spin fa-2x text-danger"></i>',
-                background: '#1e1e2d', color: '#ffffff',
-                allowOutsideClick: false, showConfirmButton: false
-            });
-
-            const url = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${firebaseId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-            const respuesta = await fetch(url, { method: 'DELETE' });
-
-            if (respuesta.ok) {
-                STATE.inventory = STATE.inventory.filter(prod => prod.firebaseId !== firebaseId);
-                if (typeof save === "function") save();
-                if (typeof filterInventory === "function") filterInventory(); 
-                if (typeof filterShop === "function") filterShop('all'); 
-                
-                Swal.fire({title: '¡Eliminado!', text: 'Borrado de Firebase con éxito.', icon: 'success', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
-            } else {
-                throw new Error("Fallo al eliminar en la nube.");
-            }
-        } catch (e) {
             Swal.fire({title: 'Error', text: e.message, icon: 'error', background: '#1e1e2d', color: '#ffffff', confirmButtonColor: '#e83e8c'});
         }
     }
