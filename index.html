@@ -2830,64 +2830,68 @@
 
     </script>
 
-        <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-
-    <script>
-      // 1. Tus llaves de acceso
-      const firebaseConfig = {
-        apiKey: "AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q",
-        authDomain: "glam-beauty-salon.firebaseapp.com",
-        projectId: "glam-beauty-salon",
-        storageBucket: "glam-beauty-salon.firebasestorage.app",
-        messagingSenderId: "255268574975",
-        appId: "1:255268574975:web:7d8ffcbc92ee43703bdeca"
-      };
-
-      // 2. Encendemos Firebase
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
-      
-      // 3. Función para descargar productos
-      async function cargarInventarioDesdeNube() {
+            <script>
+      async function cargarInventarioDirecto() {
           try {
-              const cajaProductos = await db.collection("producto").get();
-              const productosNuevos = [];
+              // Hacemos una llamada directa al servidor de Google sin usar SDKs pesados
+              const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto";
+              const respuesta = await fetch(url);
+              const datos = await respuesta.json();
 
-              // Por cada producto, le ponemos "paracaídas" a los datos vacíos
-              cajaProductos.forEach((doc) => {
-                  let datos = doc.data();
-                  productosNuevos.push({
-                      id: doc.id,
-                      serial: datos.serial || "FB-" + doc.id.substring(0,4),
-                      name: datos.nombre || "Producto sin nombre", 
-                      price: Number(datos.precio || 0),
-                      stock: Number(datos.cantidad || 0),
-                      maxStock: Number(datos.maxStock || 50), // Evita que el admin explote
-                      cat: datos.categoria || "Pelo", 
-                      supplier: datos.proveedor || "Firebase Cloud",
-                      supplierContact: "N/A",
-                      supplierCode: "N/A",
-                      img: datos.img || "https://images.unsplash.com/photo-1584949504125-51d8d814ae3d?w=400" // Foto por defecto
+              if (datos && datos.documents) {
+                  const productosNuevos = [];
+
+                  // Procesamos lo que nos responde Google
+                  datos.documents.forEach(doc => {
+                      // Sacamos el ID
+                      const rutaId = doc.name.split('/');
+                      const idReal = rutaId[rutaId.length - 1];
+                      
+                      const campos = doc.fields || {};
+                      
+                      // Extraemos los valores con cuidado
+                      const nombreProd = campos.nombre ? (campos.nombre.stringValue || "Sin Nombre") : "Producto";
+                      const cantidadProd = campos.cantidad ? (campos.cantidad.stringValue || campos.cantidad.integerValue || "0") : "0";
+                      const precioProd = campos.precio ? (campos.precio.stringValue || campos.precio.integerValue || "0") : "0";
+
+                      productosNuevos.push({
+                          id: idReal,
+                          serial: "FB-" + idReal.substring(0,4),
+                          name: nombreProd,
+                          price: Number(precioProd),
+                          stock: Number(cantidadProd),
+                          maxStock: 50, // Escudo protector para tu admin
+                          cat: "Pelo",
+                          supplier: "Glam Cloud",
+                          supplierContact: "N/A",
+                          supplierCode: "N/A",
+                          img: "https://images.unsplash.com/photo-1584949504125-51d8d814ae3d?w=400"
+                      });
                   });
-              });
 
-              if (productosNuevos.length > 0) {
-                  // Guardamos los productos en tu sistema
-                  STATE.inventory = productosNuevos;
-                  
-                  // Actualizamos las dos pantallas sin alertas molestas
-                  if (typeof filterShop === "function") filterShop('all');
-                  if (typeof filterInventory === "function") filterInventory();
+                  if (productosNuevos.length > 0) {
+                      // Inyectamos a tu sistema
+                      STATE.inventory = productosNuevos;
+                      
+                      // Refrescamos pantallas de forma segura
+                      if (typeof filterShop === "function") filterShop('all');
+                      if (typeof filterInventory === "function") filterInventory();
+                      
+                      console.log("Inventario cargado exitosamente vía API");
+                  }
               }
           } catch (error) {
-              console.error("Error leyendo Firebase:", error);
+              console.error("Error en la conexión directa:", error);
           }
       }
 
-      // Arrancamos la lectura
-      cargarInventarioDesdeNube();
+      // Arrancamos la lectura sin bloquear tu página
+      cargarInventarioDirecto();
     </script>
+
+</body>
+</html>
+
 
 
 </body>
