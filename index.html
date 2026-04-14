@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glam Beauty Salon | Sitio Oficial y Reservas v32.0</title>
+    <title>Glam Beauty Salon | Sitio Oficial y Reservas VIP</title>
   
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,9 +19,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* ==========================================================================
-           VARIABLES DE DISEÑO
-           ========================================================================== */
         :root { 
             --glam-pink: #FF1493; 
             --glam-pink-dark: #C71585; 
@@ -41,395 +38,59 @@
             background-size: 20px 20px; 
         }
 
-        .glam-font { 
-            font-family: 'Dancing Script', cursive; 
-            color: var(--glam-pink); 
-        }
-
-        .hidden { 
-            display: none !important; 
-        }
-
-        .glass-card { 
-            background: var(--glass); 
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255,20,147,0.2); 
-            border-radius: 25px; 
-            box-shadow: 0 10px 30px rgba(255,20,147,0.05); 
-        }
+        .glam-font { font-family: 'Dancing Script', cursive; color: var(--glam-pink); }
+        .hidden { display: none !important; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,20,147,0.2); border-radius: 25px; box-shadow: 0 10px 30px rgba(255,20,147,0.05); }
+        .navbar { background: var(--glass) !important; border-bottom: 3px solid var(--glam-pink); padding: 15px 30px; box-shadow: 0 5px 20px rgba(255,20,147,0.1); }
+        .menu-dots-btn { background: transparent; border: 2px solid var(--dark-deep); color: var(--dark-deep); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .menu-dots-btn:hover { background: var(--glam-pink); border-color: var(--glam-pink); color: white; transform: rotate(90deg); }
         
-        /* ==========================================================================
-           BARRA DE NAVEGACIÓN Y MENÚ 3 PUNTOS
-           ========================================================================== */
-        .navbar { 
-            background: var(--glass) !important; 
-            border-bottom: 3px solid var(--glam-pink); 
-            padding: 15px 30px; 
-            box-shadow: 0 5px 20px rgba(255,20,147,0.1);
-        }
-
-        .menu-dots-btn {
-            background: transparent;
-            border: 2px solid var(--dark-deep);
-            color: var(--dark-deep);
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-        }
-
-        .menu-dots-btn:hover {
-            background: var(--glam-pink);
-            border-color: var(--glam-pink);
-            color: white;
-            transform: rotate(90deg);
-        }
-
-        /* ==========================================================================
-           PANEL ADMINISTRATIVO
-           ========================================================================== */
-        .stat-card { 
-            background: white; 
-            border-radius: 20px; 
-            padding: 25px; 
-            border-left: 8px solid var(--glam-pink); 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-            transition: 0.3s; 
-        }
-
-        .stat-card:hover { 
-            transform: translateY(-5px); 
-        }
-
-        .pos-container { 
-            background: var(--dark-surface); 
-            border-radius: 30px; 
-            padding: 30px; 
-            border-top: 5px solid var(--glam-pink); 
-        }
-
-        .calc-screen { 
-            background: #0a0a0a; 
-            color: #ff66b2; 
-            text-align: right; 
-            padding: 20px; 
-            font-family: monospace; 
-            font-size: 2.5rem; 
-            border-radius: 15px; 
-            margin-bottom: 20px; 
-            border: 2px solid #ff1493; 
-        }
-
-        .calc-btn { 
-            height: 70px; 
-            border-radius: 15px; 
-            font-size: 1.5rem; 
-            font-weight: bold; 
-            background: #2a2a2a; 
-            color: white; 
-            border: none; 
-            transition: 0.2s; 
-        }
-
-        .calc-btn:hover { 
-            background: var(--glam-pink); 
-        } 
-
-        .calc-btn.op { 
-            background: var(--glam-pink-dark); 
-        }
+        .stat-card { background: white; border-radius: 20px; padding: 25px; border-left: 8px solid var(--glam-pink); box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .pos-container { background: var(--dark-surface); border-radius: 30px; padding: 30px; border-top: 5px solid var(--glam-pink); }
+        .calc-screen { background: #0a0a0a; color: #ff66b2; text-align: right; padding: 20px; font-family: monospace; font-size: 2.5rem; border-radius: 15px; margin-bottom: 20px; border: 2px solid #ff1493; }
+        .calc-btn { height: 70px; border-radius: 15px; font-size: 1.5rem; font-weight: bold; background: #2a2a2a; color: white; border: none; transition: 0.2s; }
+        .calc-btn:hover { background: var(--glam-pink); } 
+        .calc-btn.op { background: var(--glam-pink-dark); }
         
-        .shelf-category-title { 
-            font-weight: 900; 
-            color: var(--glam-pink-dark); 
-            margin-top: 30px; 
-            border-bottom: 4px solid #d2a679; 
-            padding-bottom: 5px; 
-            display: inline-block; 
-            width: 100%; 
-        }
+        .shelf-category-title { font-weight: 900; color: var(--glam-pink-dark); margin-top: 30px; border-bottom: 4px solid #d2a679; padding-bottom: 5px; display: inline-block; width: 100%; }
+        .shelf-item { background: white; border-radius: 20px; padding: 15px; border: 1px solid #eee; text-align: center; height: 100%; transition: 0.3s; cursor: pointer; }
+        .shelf-item:hover { border-color: var(--glam-pink); box-shadow: 0 10px 20px rgba(255,20,147,0.15); transform: translateY(-5px); }
+        .shelf-item img { width: 100%; height: 120px; object-fit: contain; margin-bottom: 10px; }
 
-        .shelf-item { 
-            background: white; 
-            border-radius: 20px; 
-            padding: 15px; 
-            border: 1px solid #eee; 
-            text-align: center; 
-            height: 100%; 
-            transition: 0.3s; 
-            cursor: pointer; 
-        }
-
-        .shelf-item:hover { 
-            border-color: var(--glam-pink); 
-            box-shadow: 0 10px 20px rgba(255,20,147,0.15); 
-            transform: translateY(-5px); 
-        }
-
-        .shelf-item img { 
-            width: 100%; 
-            height: 120px; 
-            object-fit: contain; 
-            margin-bottom: 10px; 
-        }
-
-        /* ==========================================================================
-           LANDING PAGE Y BOUTIQUE (VISTA PÚBLICA)
-           ========================================================================== */
-        .hero-banner {
-            background: linear-gradient(to right, rgba(0,0,0,0.8), rgba(255,20,147,0.3)), url('https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=1200') center/cover;
-            border-radius: 35px;
-            padding: 80px 50px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            color: white;
-            border: 1px solid rgba(255,20,147,0.3);
-        }
-
-        .pro-card { 
-            border: 1px solid rgba(255,20,147,0.1); 
-            border-radius: 25px; 
-            background: white; 
-            overflow: hidden; 
-            transition: 0.4s; 
-            position: relative; 
-            height: 100%; 
-            display: flex;
-            flex-direction: column;
-        }
-
-        .pro-card:hover { 
-            transform: translateY(-8px); 
-            box-shadow: 0 15px 35px rgba(255,20,147,0.15) !important; 
-        }
-
-        .img-container { 
-            height: 220px; 
-            background: #fff; 
-            padding: 15px; 
-            position: relative; 
-        }
-
-        .img-container img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-        }
-
-        .btn-float-cart { 
-            position: absolute; 
-            bottom: 15px; 
-            right: 15px; 
-            width: 45px; 
-            height: 45px; 
-            border-radius: 50%; 
-            background: var(--glam-pink); 
-            color: white; 
-            border: none; 
-            font-size: 1.1rem; 
-            transition: 0.3s; 
-            opacity: 0; 
-            box-shadow: 0 5px 15px rgba(255,20,147,0.4); 
-        }
-
-        .pro-card:hover .btn-float-cart { 
-            opacity: 1; 
-        }
+        .hero-banner { background: linear-gradient(to right, rgba(0,0,0,0.8), rgba(255,20,147,0.3)), url('https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=1200') center/cover; border-radius: 35px; padding: 80px 50px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,20,147,0.3); }
+        .pro-card { border: 1px solid rgba(255,20,147,0.1); border-radius: 25px; background: white; overflow: hidden; transition: 0.4s; position: relative; height: 100%; display: flex; flex-direction: column; }
+        .pro-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(255,20,147,0.15) !important; }
+        .img-container { height: 220px; background: #fff; padding: 15px; position: relative; }
+        .img-container img { width: 100%; height: 100%; object-fit: contain; }
+        .btn-float-cart { position: absolute; bottom: 15px; right: 15px; width: 45px; height: 45px; border-radius: 50%; background: var(--glam-pink); color: white; border: none; font-size: 1.1rem; transition: 0.3s; opacity: 0; box-shadow: 0 5px 15px rgba(255,20,147,0.4); }
+        .pro-card:hover .btn-float-cart { opacity: 1; }
         
-        .staff-card-vip { 
-            display: flex; 
-            flex-direction: column; 
-            padding: 20px; 
-            border-radius: 20px; 
-            background: white; 
-            margin-bottom: 15px; 
-            border: 1px solid rgba(255,20,147,0.2); 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); 
-            transition: 0.3s; 
-        }
+        .staff-card-vip { display: flex; flex-direction: column; padding: 20px; border-radius: 20px; background: white; margin-bottom: 15px; border: 1px solid rgba(255,20,147,0.2); box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .staff-card-vip:hover { border-color: var(--glam-pink); transform: translateX(5px); }
+        .staff-img { width: 60px; height: 60px; border-radius: 15px; object-fit: cover; border: 2px solid var(--glam-pink); margin-right: 15px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .status-dot.online { background: #FF1493; box-shadow: 0 0 10px #FF1493; } 
+        .status-dot.offline { background: #ccc; }
+        .bg-soft-pink { background-color: var(--soft-pink); }
+        .text-pink { color: var(--glam-pink); }
 
-        .staff-card-vip:hover { 
-            border-color: var(--glam-pink); 
-            transform: translateX(5px); 
-        }
+        #cart-sidebar { position: fixed; top: 0; right: -550px; width: 500px; height: 100vh; background: white; z-index: 2000; transition: 0.5s; padding: 30px; border-left: 3px solid var(--glam-pink); overflow-y: auto; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
+        #cart-sidebar.active { right: 0; }
+        #map { height: 200px; border-radius: 15px; border: 2px solid var(--glam-pink); margin-bottom: 15px; }
+        .btn-glam { background: var(--glam-pink); color: white; border-radius: 50px; padding: 12px 30px; font-weight: 800; border: none; text-transform: uppercase; transition: 0.3s; }
+        .btn-glam:hover { background: var(--dark-deep); color: var(--glam-pink); }
 
-        .staff-img { 
-            width: 60px; 
-            height: 60px; 
-            border-radius: 15px; 
-            object-fit: cover; 
-            border: 2px solid var(--glam-pink); 
-            margin-right: 15px; 
-        }
-
-        .status-dot { 
-            width: 10px; 
-            height: 10px; 
-            border-radius: 50%; 
-            display: inline-block; 
-            margin-right: 5px; 
-        }
-
-        .status-dot.online { 
-            background: #FF1493; 
-            box-shadow: 0 0 10px #FF1493; 
-        } 
-
-        .status-dot.offline { 
-            background: #ccc; 
-        }
-        
-        .bg-soft-pink { 
-            background-color: var(--soft-pink); 
-        }
-        
-        .text-pink { 
-            color: var(--glam-pink); 
-        }
-
-        /* ==========================================================================
-           CARRITO, MAPA Y CHATBOT
-           ========================================================================== */
-        #cart-sidebar { 
-            position: fixed; 
-            top: 0; 
-            right: -550px; 
-            width: 500px; 
-            height: 100vh; 
-            background: white; 
-            z-index: 2000; 
-            transition: 0.5s; 
-            padding: 30px; 
-            border-left: 3px solid var(--glam-pink); 
-            overflow-y: auto; 
-            box-shadow: -10px 0 30px rgba(0,0,0,0.1); 
-        }
-
-        #cart-sidebar.active { 
-            right: 0; 
-        }
-
-        #map { 
-            height: 200px; 
-            border-radius: 15px; 
-            border: 2px solid var(--glam-pink); 
-            margin-bottom: 15px; 
-        }
-
-        .btn-glam { 
-            background: var(--glam-pink); 
-            color: white; 
-            border-radius: 50px; 
-            padding: 12px 30px; 
-            font-weight: 800; 
-            border: none; 
-            text-transform: uppercase; 
-            transition: 0.3s; 
-        }
-
-        .btn-glam:hover { 
-            background: var(--dark-deep); 
-            color: var(--glam-pink); 
-        }
-
-        #chatbot-btn { 
-            position: fixed; 
-            bottom: 30px; 
-            right: 30px; 
-            width: 65px; 
-            height: 65px; 
-            background: var(--glam-pink); 
-            color: white; 
-            border-radius: 50%; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 2rem; 
-            box-shadow: 0 10px 20px rgba(255,20,147,0.4); 
-            cursor: pointer; 
-            z-index: 1999; 
-            transition: 0.3s; 
-            border: none; 
-        }
-
-        #chatbot-btn:hover { 
-            transform: scale(1.1); 
-            background: var(--dark-deep); 
-        }
-
-        #chatbot-window { 
-            position: fixed; 
-            bottom: 100px; 
-            right: 30px; 
-            width: 350px; 
-            height: 450px; 
-            background: white; 
-            border-radius: 20px; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2); 
-            z-index: 1998; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            border: 2px solid var(--glam-pink); 
-            transition: 0.3s; 
-            transform-origin: bottom right; 
-        }
-
-        #chatbot-window.hidden-chat { 
-            transform: scale(0); 
-            opacity: 0; 
-            pointer-events: none; 
-        }
-
-        .chat-header { 
-            background: var(--glam-pink); 
-            color: white; 
-            padding: 15px; 
-            font-weight: bold; 
-            display: flex; 
-            justify-content: space-between; 
-        }
-
-        .chat-body { 
-            flex: 1; 
-            padding: 15px; 
-            overflow-y: auto; 
-            background: var(--soft-pink); 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
-
-        .chat-msg { 
-            max-width: 80%; 
-            padding: 10px 15px; 
-            border-radius: 15px; 
-            font-size: 0.9rem; 
-        }
-
-        .msg-bot { 
-            background: white; 
-            border: 1px solid #ccc; 
-            align-self: flex-start; 
-            border-bottom-left-radius: 2px; 
-        }
-
-        .msg-user { 
-            background: var(--dark-deep); 
-            color: white; 
-            align-self: flex-end; 
-            border-bottom-right-radius: 2px; 
-        }
-
-        .chat-footer { 
-            padding: 10px; 
-            background: white; 
-            border-top: 1px solid #eee; 
-            display: flex; 
-            gap: 10px; 
-        }
+        #chatbot-btn { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; background: var(--glam-pink); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 10px 20px rgba(255,20,147,0.4); cursor: pointer; z-index: 1999; transition: 0.3s; border: none; }
+        #chatbot-btn:hover { transform: scale(1.1); background: var(--dark-deep); }
+        #chatbot-window { position: fixed; bottom: 100px; right: 30px; width: 350px; height: 450px; background: white; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); z-index: 1998; display: flex; flex-direction: column; overflow: hidden; border: 2px solid var(--glam-pink); transition: 0.3s; transform-origin: bottom right; }
+        #chatbot-window.hidden-chat { transform: scale(0); opacity: 0; pointer-events: none; }
+        .chat-header { background: var(--glam-pink); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: var(--soft-pink); display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 0.9rem; }
+        .msg-bot { background: white; border: 1px solid #ccc; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .msg-user { background: var(--dark-deep); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .chat-footer { padding: 10px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; }
     </style>
 </head>
 <body>
@@ -440,28 +101,23 @@
             <i class="fas fa-cut me-2"></i>Glam Boutique
         </a>
         <div class="d-flex align-items-center gap-4">
-            
             <button id="btn-track" class="btn btn-outline-dark rounded-pill fw-bold px-4" onclick="trackGlamTicket()">
                 <i class="fas fa-search-location me-2"></i>Rastrear Cita
             </button>
-            
             <button class="btn btn-link position-relative p-0" onclick="toggleCart()">
                 <i class="fas fa-shopping-bag fs-2" style="color:var(--glam-pink)"></i>
                 <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-dark shadow border border-white">0</span>
             </button>
-            
             <div class="dropdown">
                 <button class="menu-dots-btn shadow-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-ellipsis-v fs-5"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end rounded-4 shadow border-0 mt-3 p-2">
-                    
                     <li id="nav-guest-login">
                         <a class="dropdown-item py-2 fw-bold rounded" href="#" onclick="openAuthModal()">
                             <i class="fas fa-sign-in-alt me-2 text-pink"></i>Iniciar Sesión / Registro
                         </a>
                     </li>
-
                     <li id="nav-user-header" class="hidden border-bottom mb-2 pb-2 px-3">
                         <small class="text-muted fw-bold d-block">Bienvenid@,</small>
                         <span id="nav-user-name" class="fw-900 text-pink fs-6">Usuario</span>
@@ -478,7 +134,6 @@
                     </li>
                 </ul>
             </div>
-
         </div>
     </div>
 </nav>
@@ -488,7 +143,6 @@
         <div class="modal-content rounded-5 shadow-lg border-0" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
             <div class="modal-body p-5 text-center">
                 <h2 class="glam-font mb-4 fs-1">Glam OS</h2>
-                
                 <div id="modal-form-login">
                     <h5 class="fw-bold mb-4">Ingresa a tu cuenta</h5>
                     <div class="form-floating mb-3">
@@ -499,14 +153,9 @@
                         <input type="password" id="login-password" class="form-control rounded-pill px-4 fw-bold" placeholder="Contraseña">
                         <label class="px-4"><i class="fas fa-key me-2 text-pink"></i>Contraseña</label>
                     </div>
-                    <button onclick="handleLogin()" class="btn btn-dark w-100 rounded-pill py-3 fw-bold fs-5 shadow">
-                        ENTRAR
-                    </button>
-                    <p class="text-muted small fw-bold mt-4">
-                        ¿Primera vez aquí? <a href="#" class="text-pink text-decoration-none" onclick="toggleAuthModalForms()">Crea tu cuenta VIP</a>
-                    </p>
+                    <button onclick="handleLogin()" class="btn btn-dark w-100 rounded-pill py-3 fw-bold fs-5 shadow">ENTRAR</button>
+                    <p class="text-muted small fw-bold mt-4">¿Primera vez aquí? <a href="#" class="text-pink text-decoration-none" onclick="toggleAuthModalForms()">Crea tu cuenta VIP</a></p>
                 </div>
-
                 <div id="modal-form-register" class="hidden">
                     <h5 class="fw-bold mb-4">Únete al Salón</h5>
                     <div class="form-floating mb-3">
@@ -521,12 +170,8 @@
                         <input type="password" id="reg-password" class="form-control rounded-pill px-4 fw-bold" placeholder="Contraseña">
                         <label class="px-4"><i class="fas fa-lock me-2 text-pink"></i>Crea tu Contraseña</label>
                     </div>
-                    <button onclick="handleRegister()" class="btn btn-glam w-100 rounded-pill py-3 fw-bold fs-5 shadow">
-                        CREAR CUENTA Y VERIFICAR
-                    </button>
-                    <p class="text-muted small fw-bold mt-4">
-                        ¿Ya tienes acceso? <a href="#" class="text-pink text-decoration-none" onclick="toggleAuthModalForms()">Inicia Sesión</a>
-                    </p>
+                    <button onclick="handleRegister()" class="btn btn-glam w-100 rounded-pill py-3 fw-bold fs-5 shadow">CREAR CUENTA Y VERIFICAR</button>
+                    <p class="text-muted small fw-bold mt-4">¿Ya tienes acceso? <a href="#" class="text-pink text-decoration-none" onclick="toggleAuthModalForms()">Inicia Sesión</a></p>
                 </div>
             </div>
         </div>
@@ -534,7 +179,6 @@
 </div>
 
 <section id="landing-view" class="container-fluid py-5 px-lg-5">
-    
     <div class="row mb-5">
         <div class="col-lg-12">
             <div class="hero-banner text-center text-lg-start">
@@ -554,7 +198,6 @@
             </div>
         </div>
     </div>
-
     <div class="row mb-5">
         <div class="col-12">
             <div class="bg-dark text-white rounded-pill d-flex align-items-center justify-content-center p-3 shadow-sm border border-pink">
@@ -563,7 +206,6 @@
             </div>
         </div>
     </div>
-
     <div class="row g-5">
         <div class="col-lg-8">
             <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
@@ -578,25 +220,21 @@
                     <option value="General">Otros Accesorios</option>
                 </select>
             </div>
-            <div id="client-grid" class="row g-4 align-items-stretch">
-                </div>
+            <div id="client-grid" class="row g-4 align-items-stretch"></div>
         </div>
-
         <div class="col-lg-4">
             <div class="glass-card p-4 sticky-top" style="top: 100px;">
                 <h4 class="fw-900 mb-3 border-bottom pb-2 text-pink">
                     <i class="fas fa-spa me-2"></i>AGENDA TU CITA
                 </h4>
                 <p class="text-muted small mb-4">Selecciona a un especialista disponible para ver sus horarios de hoy y reservar tu espacio VIP.</p>
-                <div id="client-stylist-list">
-                    </div>
+                <div id="client-stylist-list"></div>
             </div>
         </div>
     </div>
 </section>
 
 <section id="admin-view" class="container-fluid py-5 px-lg-5 hidden">
-            
     <div class="row g-4 mb-5">
         <div class="col-md-3">
             <div class="stat-card">
@@ -627,9 +265,7 @@
     </div>
 
     <div class="row g-5">
-        
         <div class="col-lg-8">
-            
             <div class="pos-container mb-5">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="text-white fw-bold">
@@ -637,8 +273,7 @@
                     </h4>
                 </div>
                 <div class="calc-screen" id="calc-display">0</div>
-                <div class="row g-3" id="calc-grid">
-                    </div>
+                <div class="row g-3" id="calc-grid"></div>
                 <button class="btn btn-glam w-100 mt-4 py-3 fs-4" onclick="addCalcToCash()">
                     <i class="fas fa-money-bill-wave me-2"></i>COBRAR EN EFECTIVO
                 </button>
@@ -653,7 +288,6 @@
                         <i class="fas fa-plus me-2"></i>NUEVO PRODUCTO
                     </button>
                 </div>
-                
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <input type="text" id="inv-search" class="form-control rounded-pill px-4 border" placeholder="Buscar por nombre, serial, SKU..." oninput="filterInventory()">
@@ -670,13 +304,11 @@
                         </select>
                     </div>
                 </div>
-                
                 <div id="shelf-display"></div>
             </div>
         </div>
 
         <div class="col-lg-4">
-            
             <div class="glass-card p-4 mb-4">
                 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                     <h5 class="fw-bold mb-0">
@@ -686,7 +318,7 @@
                         <button class="btn btn-sm btn-warning rounded-circle me-1" title="Pagar Nómina" onclick="openStaffPayments()">
                             <i class="fas fa-hand-holding-usd"></i>
                         </button>
-                       <button class="btn btn-sm btn-dark rounded-circle" onclick="window.addNewStaff()">
+                       <button class="btn btn-sm btn-dark rounded-circle" onclick="addNewStaff()">
                             <i class="fas fa-user-plus"></i>
                         </button>
                     </div>
@@ -707,7 +339,6 @@
                 </h5>
                 <canvas id="salesChart" height="200"></canvas>
             </div>
-
         </div>
     </div>
 </section>
@@ -719,9 +350,7 @@
         </h3>
         <button class="btn-close" onclick="toggleCart()"></button>
     </div>
-  
     <div id="cart-list" class="mb-4" style="min-height: 250px;"></div>
-  
     <div class="border-top pt-4">
         <div class="form-check form-switch mb-3 bg-light border p-3 rounded-4">
             <input class="form-check-input ms-1" type="checkbox" id="delivery-check" onchange="toggleLogistics()" style="transform: scale(1.3);">
@@ -729,7 +358,6 @@
                 <i class="fas fa-motorcycle me-2 text-pink"></i>Envío a Domicilio (+RD$ 250)
             </label>
         </div>
-    
         <div id="logistics-box" class="hidden mb-4">
             <div class="alert alert-secondary small py-2 px-3 mb-2">
                 <i class="fas fa-map-marker-alt text-danger me-1"></i> Toca el mapa para ubicar tu dirección.
@@ -737,7 +365,6 @@
             <div id="map"></div>
             <input type="text" id="delivery-addr" class="form-control form-control-sm rounded-3 mt-2 fw-bold" placeholder="Calle, Sector, Ciudad...">
         </div>
-
         <div class="bg-dark text-white p-3 rounded-4 shadow-sm border border-pink">
             <div class="d-flex justify-content-between mb-1 small text-secondary">
                 <span>Subtotal:</span>
@@ -763,32 +390,26 @@
         <div class="modal-content rounded-5 shadow-lg overflow-hidden border-0">
             <div class="modal-body p-0">
                 <div class="row g-0">
-                    
                     <div class="col-md-6 p-5 bg-white">
                         <h4 class="fw-900 mb-4 text-pink">
                             <i class="fas fa-credit-card me-2"></i>PAGO SEGURO
                         </h4>
-
                         <label class="small fw-bold mb-1">Tipo de Factura:</label>
                         <select id="f-tipo" class="form-select form-select-sm bg-light mb-3 fw-bold" onchange="toggleRncField(); updateInvoice();">
                             <option value="B02">Consumidor Final</option>
                             <option value="B01">Con Valor Fiscal</option>
                         </select>
-
                         <div id="rnc-box" class="hidden mb-3">
                             <label class="small fw-bold mb-1 text-danger">RNC / Cédula:</label>
                             <input type="text" id="f-rnc" class="form-control form-control-sm border-danger" placeholder="Ingrese RNC" oninput="updateInvoice()">
                         </div>
-                        
                         <label class="small fw-bold mb-1">Nombre / Razón Social:</label>
                         <input type="text" id="f-name" class="form-control form-control-sm bg-light mb-3" placeholder="Ej. Cliente Final" oninput="updateInvoice()">
-            
                         <label class="small fw-bold mb-1">Método de Pago:</label>
                         <select id="pay-mode" class="form-select form-select-sm bg-light mb-3 fw-bold" onchange="toggleCardFields()">
                             <option value="Efectivo">Efectivo</option>
                             <option value="Tarjeta">Tarjeta de Crédito / Débito</option>
                         </select>
-
                         <div id="card-fields" class="hidden mb-3 p-3 bg-dark rounded-4 text-white">
                             <div class="text-end mb-2">
                                 <i class="fab fa-cc-visa fa-2x"></i>
@@ -803,20 +424,16 @@
                                 </div>
                             </div>
                         </div>
-
                         <label class="small fw-bold mb-1 text-pink">Propina Empleado (RD$):</label>
                         <input type="number" id="f-tip" class="form-control form-control-sm bg-light mb-4" value="0" oninput="updateInvoice()">
-            
                         <button class="btn btn-dark w-100 py-3 rounded-pill fw-bold" onclick="finalizeTransaction()">
                             CONFIRMAR PAGO DE RD$ <span id="btn-total">0</span>
                         </button>
                     </div>
-          
                     <div class="col-md-6 p-4 bg-light d-flex flex-column justify-content-center border-start">
                         <div id="invoice-render" class="bg-white p-4 border rounded shadow-sm" style="font-family: monospace; font-size: 12px;">
-                            </div>
+                        </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -832,13 +449,11 @@
         <span><i class="fas fa-robot me-2"></i>GlamIA Asistente</span>
         <i class="fas fa-times cursor-pointer" onclick="toggleChat()" style="cursor:pointer;"></i>
     </div>
-    
     <div class="chat-body" id="chat-body">
         <div class="chat-msg msg-bot">
             ¡Hola! Soy la asistente virtual de Glam Boutique 💖. ¿En qué te puedo ayudar hoy? (Ej: "horario", "ubicación", "cita").
         </div>
     </div>
-    
     <div class="chat-footer">
         <input type="text" id="chat-input" class="form-control rounded-pill" placeholder="Escribe aquí..." onkeypress="handleChatEnter(event)">
         <button class="btn btn-glam rounded-circle px-3" onclick="sendChatMessage()">
@@ -847,62 +462,24 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     /* ==========================================================================
        1. BASE DE DATOS LOCAL Y ESTADO GLOBAL (STATE)
        ========================================================================== */
     const DEFAULT_STATE = { 
         users: [
-            { 
-                id: 1, 
-                email: 'admin', 
-                password: '12345', 
-                role: 'admin', 
-                name: 'Administrador Maestro' 
-            }
+            { id: 1, email: 'admin', password: '12345', role: 'admin', name: 'Administrador Maestro' }
         ],
         currentUser: null, 
-        
         caja: 0, 
         sales: [], 
         cart: [], 
         appts: [], 
         calcInput: '0', 
-        
-        inventory: [ 
-            { 
-                id: 101, 
-                serial: "KER-001", 
-                brand: "Kérastase", 
-                supplier: "L'Oréal", 
-                supplierContact: "Maria Ventas", 
-                supplierPhone: "809-555-1234", 
-                supplierCode: "SKU-998", 
-                orderDate: "2026-01-10", 
-                name: "Shampoo Nutritivo", 
-                price: 1500, 
-                stock: 20, 
-                maxStock: 50, 
-                cat: "Pelo", 
-                expDate: "2027-12-31", 
-                img: "https://images.unsplash.com/photo-1584949504125-51d8d814ae3d?w=400" 
-            }
-        ], 
-        
-        staff: [ 
-            { 
-                id: 1, 
-                empId: "EMP-001", 
-                name: "Valentina Ross", 
-                specialty: "Máster Colorista",
-                commission: 20, 
-                phone: "809-555-0001", 
-                status: "Offline", 
-                clockInTime: null, 
-                salesTotal: 0, 
-                img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" 
-            } 
-        ] 
+        inventory: [], 
+        staff: [] 
     };
 
     let STATE = { ...DEFAULT_STATE };
@@ -1055,12 +632,8 @@
             return Swal.fire('Error', 'Ese correo ya está registrado.', 'error');
         }
 
-        // Generar código de validación
         const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
 
-        // -------------------------------------------------------------
-        // ENVÍO DE CORREO DE VERIFICACIÓN VÍA FORMSPREE
-        // -------------------------------------------------------------
         fetch("https://formspree.io/f/xkopberl", {
             method: "POST",
             headers: {
@@ -1227,7 +800,7 @@
     }
 
     /* ==========================================================================
-       5. UTILIDADES EXTRAS 
+       5. UTILIDADES EXTRAS Y COMPRESIÓN DE FOTOS
        ========================================================================== */
     function resizeImage(file) { 
         return new Promise((resolve, reject) => { 
@@ -1266,6 +839,32 @@
         input.value = val; 
     }
 
+    window.comprimirYConvertirABase64 = function(file, maxDimension) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file); 
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    if (width > height) {
+                        if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
+                    } else {
+                        if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
+                    }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height); 
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.onerror = () => reject("Error");
+            };
+            reader.onerror = () => reject("Error");
+        });
+    };
+
     /* ==========================================================================
        6. TERMINAL POS
        ========================================================================== */
@@ -1299,7 +898,6 @@
         display.innerText = STATE.calcInput; 
     }
 
-   /* --- COBRO TERMINAL POS (CALCULADORA) -> A LA NUBE --- */
     window.addCalcToCash = async function() { 
         try { 
             const val = parseFloat(eval(STATE.calcInput)); 
@@ -1311,7 +909,6 @@
             const fechaStr = new Date().toLocaleDateString();
             const horaStr = new Date().toLocaleTimeString();
 
-            // 1. Armamos el paquete para Firebase
             const paqueteVenta = {
                 fields: {
                     ncf: { stringValue: ncf },
@@ -1325,7 +922,6 @@
 
             const urlVenta = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/venta?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
             
-            // 2. Enviamos el cobro a Google
             const respuesta = await fetch(urlVenta, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1333,7 +929,6 @@
             });
 
             if (respuesta.ok) {
-                // 3. Si Google guardó el dinero, actualizamos la pantalla
                 STATE.caja += val; 
                 STATE.calcInput = '0'; 
                 document.getElementById('calc-display').innerText = '0'; 
@@ -1350,7 +945,7 @@
                 }); 
                 
                 save(); 
-                window.renderAdmin(); 
+                renderAdmin(); 
                 
                 Swal.fire({ 
                     icon: 'success', title: 'Cobrado y Guardado ☁️', toast: true, 
@@ -1363,8 +958,9 @@
             Swal.fire('Error', 'No se pudo guardar: ' + e.message, 'error'); 
         } 
     };
+
     /* ==========================================================================
-       7. INVENTARIO MAESTRO
+       7. INVENTARIO MAESTRO (COMPLETO)
        ========================================================================== */
     function filterInventory() {
         const query = document.getElementById('inv-search') ? document.getElementById('inv-search').value.toLowerCase() : ''; 
@@ -1410,7 +1006,7 @@
 
                 html += `
                 <div class="col-md-4 animate__animated animate__fadeIn mb-3">
-                    <div class="shelf-item shadow-sm" onclick="openQuickEdit(${p.id})">
+                    <div class="shelf-item shadow-sm" onclick="window.openQuickEdit(${p.id})">
                         <img src="${p.img || 'https://via.placeholder.com/150'}">
                         <h6 class="fw-bold mb-1 mt-2" style="font-size:13px">${p.name || 'N/A'}</h6>
                         <small class="text-muted d-block mb-1" style="font-size:11px;">S/N: ${p.serial || 'N/A'}</small>
@@ -1433,310 +1029,312 @@
         });
     }
 
- async function addProduct() {
-    // Calculamos la fecha de hoy para auto-llenar
-    const fechaHoy = new Date().toISOString().split('T')[0];
+    window.addProduct = async function() {
+        const fechaHoy = new Date().toISOString().split('T')[0];
 
-    const { value: formValues } = await Swal.fire({
-        title: '<i class="fas fa-boxes text-pink me-2"></i>NUEVO PRODUCTO',
-        html: `
-          <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-              <h6 class="fw-bold text-pink border-bottom pb-1">1. Datos Principales</h6>
-              <div class="row g-2 mb-2">
-                  <div class="col-5">
-                      <label class="small fw-bold">Serial Internal <span class="text-danger">*</span></label>
-                      <input id="np-serial" class="form-control form-control-sm" placeholder="Ej: KER-101">
+        const { value: formValues } = await Swal.fire({
+            title: '<i class="fas fa-boxes text-pink me-2"></i>NUEVO PRODUCTO',
+            html: `
+              <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
+                  <h6 class="fw-bold text-pink border-bottom pb-1">1. Datos Principales</h6>
+                  <div class="row g-2 mb-2">
+                      <div class="col-5">
+                          <label class="small fw-bold">Serial Internal <span class="text-danger">*</span></label>
+                          <input id="np-serial" class="form-control form-control-sm" placeholder="Ej: KER-101">
+                      </div>
+                      <div class="col-7">
+                          <label class="small fw-bold">Nombre del Producto <span class="text-danger">*</span></label>
+                          <input id="np-name" class="form-control form-control-sm" placeholder="Ej: Shampoo Kérastase">
+                      </div>
                   </div>
-                  <div class="col-7">
-                      <label class="small fw-bold">Nombre del Producto <span class="text-danger">*</span></label>
-                      <input id="np-name" class="form-control form-control-sm" placeholder="Ej: Shampoo Kérastase">
+                  <div class="row g-2 mb-2">
+                      <div class="col-4">
+                          <label class="small fw-bold">Precio (RD$) <span class="text-danger">*</span></label>
+                          <input id="np-price" type="number" class="form-control form-control-sm" placeholder="0">
+                      </div>
+                      <div class="col-4">
+                          <label class="small fw-bold">Stock Inicial:</label>
+                          <input id="np-stock" type="number" class="form-control form-control-sm" value="0">
+                      </div>
+                      <div class="col-4">
+                          <label class="small fw-bold text-danger">Stock MÁX <span class="text-danger">*</span></label>
+                          <input id="np-max" type="number" class="form-control form-control-sm" value="50">
+                      </div>
                   </div>
-              </div>
-              <div class="row g-2 mb-2">
-                  <div class="col-4">
-                      <label class="small fw-bold">Precio (RD$) <span class="text-danger">*</span></label>
-                      <input id="np-price" type="number" class="form-control form-control-sm" placeholder="0">
+                  <div class="mb-2">
+                      <label class="small fw-bold">Categoría:</label>
+                      <select id="np-cat" class="form-select form-select-sm">
+                          <option>Pelo</option><option>Uñas</option><option>Tintes</option><option>Piel</option><option>Perfumes</option><option>General</option>
+                      </select>
                   </div>
-                  <div class="col-4">
-                      <label class="small fw-bold">Stock Inicial:</label>
-                      <input id="np-stock" type="number" class="form-control form-control-sm" value="0">
-                  </div>
-                  <div class="col-4">
-                      <label class="small fw-bold text-danger">Stock MÁX <span class="text-danger">*</span></label>
-                      <input id="np-max" type="number" class="form-control form-control-sm" value="50">
-                  </div>
-              </div>
-              <div class="mb-2">
-                  <label class="small fw-bold">Categoría:</label>
-                  <select id="np-cat" class="form-select form-select-sm">
-                      <option>Pelo</option><option>Uñas</option><option>Tintes</option><option>Piel</option><option>Perfumes</option><option>General</option>
-                  </select>
-              </div>
 
-              <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">2. Datos de Proveedor</h6>
-              <div class="row g-2 mb-2">
-                  <div class="col-6">
-                      <label class="small fw-bold">Empresa:</label>
-                      <input id="np-supplier" type="text" class="form-control form-control-sm">
+                  <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">2. Datos de Proveedor</h6>
+                  <div class="row g-2 mb-2">
+                      <div class="col-6">
+                          <label class="small fw-bold">Empresa:</label>
+                          <input id="np-supplier" type="text" class="form-control form-control-sm">
+                      </div>
+                      <div class="col-6">
+                          <label class="small fw-bold">Cód. SKU Fábrica:</label>
+                          <input id="np-supp-code" type="text" class="form-control form-control-sm">
+                      </div>
+                      <div class="col-6">
+                          <label class="small fw-bold">Representante:</label>
+                          <input id="np-rep" type="text" class="form-control form-control-sm">
+                      </div>
+                      <div class="col-6">
+                          <label class="small fw-bold">Teléfono Prov.:</label>
+                          <input id="np-tel" type="text" class="form-control form-control-sm">
+                      </div>
                   </div>
-                  <div class="col-6">
-                      <label class="small fw-bold">Cód. SKU Fábrica:</label>
-                      <input id="np-supp-code" type="text" class="form-control form-control-sm">
-                  </div>
-                  <div class="col-6">
-                      <label class="small fw-bold">Representante:</label>
-                      <input id="np-rep" type="text" class="form-control form-control-sm">
-                  </div>
-                  <div class="col-6">
-                      <label class="small fw-bold">Teléfono Prov.:</label>
-                      <input id="np-tel" type="text" class="form-control form-control-sm">
-                  </div>
-              </div>
 
-              <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">3. Fechas de Control</h6>
-              <div class="row g-2 mb-2">
-                  <div class="col-6">
-                      <label class="small fw-bold">Fecha Ingreso:</label>
-                      <input id="np-ingreso" type="date" class="form-control form-control-sm" value="${fechaHoy}">
+                  <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">3. Fechas de Control</h6>
+                  <div class="row g-2 mb-2">
+                      <div class="col-6">
+                          <label class="small fw-bold">Fecha Ingreso:</label>
+                          <input id="np-ingreso" type="date" class="form-control form-control-sm" value="${fechaHoy}">
+                      </div>
+                      <div class="col-6">
+                          <label class="small fw-bold">Fecha Vencimiento:</label>
+                          <input id="np-vence" type="date" class="form-control form-control-sm">
+                      </div>
                   </div>
-                  <div class="col-6">
-                      <label class="small fw-bold">Fecha Vencimiento:</label>
-                      <input id="np-vence" type="date" class="form-control form-control-sm">
-                  </div>
-              </div>
 
-              <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">4. Fotografía Real</h6>
-              <p class="text-muted small mb-2"><i class="fas fa-info-circle text-pink"></i> La imagen se comprimirá automáticamente para no saturar tu teléfono.</p>
-              <input type="file" id="np-img-file" class="form-control form-control-sm mb-1" accept="image/*">
-          </div>`,
-        showCancelButton: true, 
-        confirmButtonText: 'Subir a la Nube ☁️', 
-        width: '550px',
-        preConfirm: async () => {
-            const serial = document.getElementById('np-serial').value.trim(); 
-            const name = document.getElementById('np-name').value.trim(); 
-            const price = parseFloat(document.getElementById('np-price').value); 
-            const maxStock = parseInt(document.getElementById('np-max').value);
-            const stock = parseInt(document.getElementById('np-stock').value) || 0; 
-            const file = document.getElementById('np-img-file').files[0];
-            
-            if (!name || isNaN(price) || !serial || isNaN(maxStock)) { 
-                Swal.showValidationMessage("Por favor llena los campos marcados con *"); 
-                return false; 
-            }
-            
-            let imgBase64 = 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'; 
-            
-            if (file) { 
-                try { 
-                    Swal.showLoading(); 
-                    imgBase64 = await comprimirYConvertirABase64(file, 400); 
-                    console.log("¡Foto convertida a texto exitosamente!");
-                } catch(e) {
-                    console.error("Error procesando imagen:", e);
-                    Swal.showValidationMessage("Hubo un error con la foto. Intenta con otra.");
-                    return false;
-                } 
-            }
-            
-            return { 
-                serial, name, price, stock, maxStock, 
-                cat: document.getElementById('np-cat').value, 
-                supplier: document.getElementById('np-supplier').value.trim(), 
-                suppCode: document.getElementById('np-supp-code').value.trim(),
-                rep: document.getElementById('np-rep').value.trim(),
-                tel: document.getElementById('np-tel').value.trim(),
-                ingreso: document.getElementById('np-ingreso').value,
-                vence: document.getElementById('np-vence').value,
-                img: imgBase64 
-            };
-        }
-    });
-    
-    if (formValues) { 
-        Swal.fire({
-            title: 'Conectando con Google Cloud...',
-            html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i><br><small class="text-muted">Esto puede tomar unos segundos si la foto es grande.</small>',
-            allowOutsideClick: false,
-            showConfirmButton: false
-        });
-
-        try {
-            const datosFirebase = {
-                fields: {
-                    nombre: { stringValue: formValues.name },
-                    precio: { stringValue: formValues.price.toString() },
-                    cantidad: { stringValue: formValues.stock.toString() },
-                    maxStock: { stringValue: formValues.maxStock.toString() },
-                    categoria: { stringValue: formValues.cat },
-                    serial: { stringValue: formValues.serial },
-                    proveedor: { stringValue: formValues.supplier },
-                    skuFabrica: { stringValue: formValues.suppCode },
-                    representante: { stringValue: formValues.rep },
-                    telefonoProv: { stringValue: formValues.tel },
-                    fechaIngreso: { stringValue: formValues.ingreso },
-                    fechaVence: { stringValue: formValues.vence },
-                    img: { stringValue: formValues.img } 
+                  <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">4. Fotografía Real</h6>
+                  <p class="text-muted small mb-2"><i class="fas fa-info-circle text-pink"></i> La imagen se comprimirá automáticamente para no saturar tu teléfono.</p>
+                  <input type="file" id="np-img-file" class="form-control form-control-sm mb-1" accept="image/*">
+              </div>`,
+            showCancelButton: true, 
+            confirmButtonText: 'Subir a la Nube ☁️', 
+            width: '550px',
+            preConfirm: async () => {
+                const serial = document.getElementById('np-serial').value.trim(); 
+                const name = document.getElementById('np-name').value.trim(); 
+                const price = parseFloat(document.getElementById('np-price').value); 
+                const maxStock = parseInt(document.getElementById('np-max').value);
+                const stock = parseInt(document.getElementById('np-stock').value) || 0; 
+                const file = document.getElementById('np-img-file').files[0];
+                
+                if (!name || isNaN(price) || !serial || isNaN(maxStock)) { 
+                    Swal.showValidationMessage("Por favor llena los campos marcados con *"); 
+                    return false; 
                 }
-            };
-
-            const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-            
-            const respuesta = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datosFirebase)
+                
+                let imgBase64 = 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'; 
+                
+                if (file) { 
+                    try { 
+                        Swal.showLoading(); 
+                        imgBase64 = await window.comprimirYConvertirABase64(file, 400); 
+                    } catch(e) {
+                        console.error("Error procesando imagen:", e);
+                        Swal.showValidationMessage("Hubo un error con la foto. Intenta con otra.");
+                        return false;
+                    } 
+                }
+                
+                return { 
+                    serial, name, price, stock, maxStock, 
+                    cat: document.getElementById('np-cat').value, 
+                    supplier: document.getElementById('np-supplier').value.trim(), 
+                    suppCode: document.getElementById('np-supp-code').value.trim(),
+                    rep: document.getElementById('np-rep').value.trim(),
+                    tel: document.getElementById('np-tel').value.trim(),
+                    ingreso: document.getElementById('np-ingreso').value,
+                    vence: document.getElementById('np-vence').value,
+                    img: imgBase64 
+                };
+            }
+        });
+        
+        if (formValues) { 
+            Swal.fire({
+                title: 'Conectando con Google Cloud...',
+                html: '<i class="fas fa-spinner fa-spin fa-2x text-pink"></i><br><small class="text-muted">Esto puede tomar unos segundos.</small>',
+                allowOutsideClick: false,
+                showConfirmButton: false
             });
 
-            if (respuesta.ok) {
-                const data = await respuesta.json();
-                const rutaId = data.name.split('/');
-                const idRealFirebase = rutaId[rutaId.length - 1];
-
-                // Sincronización Inmediata Frontend
-                STATE.inventory.push({ 
-                    id: 5000 + STATE.inventory.length + 1, 
-                    firebaseId: idRealFirebase, 
-                    ...formValues 
-                }); 
-                
-                if (typeof save === "function") save(); 
-                if (typeof filterInventory === "function") filterInventory(); 
-                if (typeof filterShop === "function") filterShop('all'); 
-                
-                Swal.fire('¡Magia! ☁️', 'El producto y sus datos están a salvo en la nube.', 'success'); 
-            } else {
-                throw new Error("Google rechazó los datos.");
-            }
-        } catch(e) {
-            Swal.fire('Error de Conexión', 'No pudimos subir el producto: ' + e.message, 'error');
-        }
-    }
-}
-    window.openQuickEdit = async function(id) {
-    const prod = STATE.inventory.find(p => p.id === id); 
-    if (!prod) return;
-    
-    const fireId = prod.firebaseId;
-
-    const { value: formValues } = await Swal.fire({
-        title: 'EDICIÓN Y CONTROL',
-        html: `
-          <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-              <div class="text-center mb-3">
-                  <img src="${prod.img || 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'}" height="80" class="border border-pink rounded shadow-sm" style="object-fit:cover;">
-              </div>
-              
-              <div class="bg-light p-3 rounded border mb-4">
-                  <h6 class="fw-bold text-dark text-center mb-3">Stock Físico: <span class="text-pink fs-4">${prod.stock || prod.cantidad || 0}</span> / ${prod.maxStock || 50} MAX</h6>
-                  <div class="row g-2">
-                      <div class="col-6"><label class="small fw-bold text-success"><i class="fas fa-plus"></i> Nueva Entrada:</label><input type="number" id="e-qty" class="form-control form-control-sm border-success" value="0"></div>
-                      <div class="col-6"><label class="small fw-bold text-danger"><i class="fas fa-minus"></i> Merma/Vencido:</label><input type="number" id="e-minus" class="form-control form-control-sm border-danger" value="0"></div>
-                  </div>
-              </div>
-
-              <h6 class="fw-bold text-pink border-bottom pb-1">Actualizar Información</h6>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Precio (RD$):</label><input type="number" id="e-price" class="form-control form-control-sm" value="${prod.price || prod.precio || 0}"></div>
-                  <div class="col-6"><label class="small fw-bold">Límite MAX:</label><input type="number" id="e-max" class="form-control form-control-sm" value="${prod.maxStock || 50}"></div>
-              </div>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Empresa Prov:</label><input type="text" id="e-supplier" class="form-control form-control-sm" value="${prod.supplier || prod.proveedor || ''}"></div>
-                  <div class="col-6"><label class="small fw-bold">Contacto Prov:</label><input type="text" id="e-contact" class="form-control form-control-sm" value="${prod.supplierContact || prod.representante || ''}"></div>
-              </div>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Teléfono Prov:</label><input type="text" id="e-phone" class="form-control form-control-sm" value="${prod.supplierPhone || prod.telefonoProv || ''}"></div>
-                  <div class="col-6"><label class="small fw-bold">Código SKU:</label><input type="text" id="e-code" class="form-control form-control-sm" value="${prod.supplierCode || prod.skuFabrica || ''}"></div>
-              </div>
-              <div class="row g-2 mb-2 mt-3">
-                  <div class="col-6"><label class="small fw-bold">Fecha Pedido:</label><input id="e-order-date" type="date" class="form-control form-control-sm" value="${prod.orderDate || prod.fechaIngreso || ''}"></div>
-                  <div class="col-6"><label class="small fw-bold text-danger">Modificar Expiración:</label><input id="e-expdate" type="date" class="form-control form-control-sm border-danger" value="${prod.expDate || prod.fechaVence || ''}"></div>
-              </div>
-              
-              <div class="mt-4 pt-3 border-top text-center">
-                 <button id="btn-delete-real" class="btn btn-outline-danger w-100 fw-bold rounded-pill"><i class="fas fa-trash me-2"></i>ELIMINAR PRODUCTO</button>
-              </div>
-          </div>`,
-        showCancelButton: true, confirmButtonText: 'Guardar Cambios', confirmButtonColor: '#FF1493', cancelButtonText: 'Cancelar', width: '500px',
-        didOpen: () => {
-            document.getElementById('btn-delete-real').onclick = async () => {
-                const res = await Swal.fire({ 
-                    title: '¿Borrar definitivamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, borrar' 
-                });
-                if (res.isConfirmed) { 
-                    if(fireId) {
-                        await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' });
+            try {
+                const datosFirebase = {
+                    fields: {
+                        nombre: { stringValue: formValues.name },
+                        precio: { stringValue: formValues.price.toString() },
+                        cantidad: { stringValue: formValues.stock.toString() },
+                        maxStock: { stringValue: formValues.maxStock.toString() },
+                        categoria: { stringValue: formValues.cat },
+                        serial: { stringValue: formValues.serial },
+                        proveedor: { stringValue: formValues.supplier },
+                        skuFabrica: { stringValue: formValues.suppCode },
+                        representante: { stringValue: formValues.rep },
+                        telefonoProv: { stringValue: formValues.tel },
+                        fechaIngreso: { stringValue: formValues.ingreso },
+                        fechaVence: { stringValue: formValues.vence },
+                        img: { stringValue: formValues.img } 
                     }
-                    STATE.inventory = STATE.inventory.filter(p => p.id !== id); 
-                    save(); filterInventory(); Swal.fire('Borrado', 'Eliminado con éxito', 'success'); 
+                };
+
+                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+                
+                const respuesta = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosFirebase)
+                });
+
+                if (respuesta.ok) {
+                    const data = await respuesta.json();
+                    const rutaId = data.name.split('/');
+                    const idRealFirebase = rutaId[rutaId.length - 1];
+
+                    STATE.inventory.push({ 
+                        id: 5000 + STATE.inventory.length + 1, 
+                        firebaseId: idRealFirebase, 
+                        ...formValues 
+                    }); 
+                    
+                    save(); 
+                    filterInventory(); 
+                    filterShop('all'); 
+                    
+                    Swal.fire('¡Magia! ☁️', 'El producto y sus datos están a salvo en la nube.', 'success'); 
+                } else {
+                    throw new Error("Google rechazó los datos.");
                 }
-            };
-        },
-        preConfirm: () => {
-            const p = parseFloat(document.getElementById('e-price').value); 
-            const max = parseInt(document.getElementById('e-max').value);
-            const add = parseInt(document.getElementById('e-qty').value) || 0; 
-            const minus = parseInt(document.getElementById('e-minus').value) || 0;
-            const currentStock = parseInt(prod.stock || prod.cantidad || 0);
+            } catch(e) {
+                Swal.fire('Error de Conexión', 'No pudimos subir el producto: ' + e.message, 'error');
+            }
+        }
+    };
+
+    window.openQuickEdit = async function(id) {
+        const prod = STATE.inventory.find(p => p.id === id); 
+        if (!prod) return;
+        
+        const fireId = prod.firebaseId;
+
+        const currentStock = prod.cantidad !== undefined ? parseInt(prod.cantidad) : (prod.stock || 0);
+        const currentPrice = prod.precio !== undefined ? parseFloat(prod.precio) : (prod.price || 0);
+
+        const { value: formValues } = await Swal.fire({
+            title: 'EDICIÓN Y CONTROL',
+            html: `
+              <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
+                  <div class="text-center mb-3">
+                      <img src="${prod.img || 'https://dummyimage.com/400x400/ff1493/ffffff.png&text=Glam+Boutique'}" height="80" class="border border-pink rounded shadow-sm" style="object-fit:cover;">
+                  </div>
+                  
+                  <div class="bg-light p-3 rounded border mb-4">
+                      <h6 class="fw-bold text-dark text-center mb-3">Stock Físico: <span class="text-pink fs-4">${currentStock}</span> / ${prod.maxStock || 50} MAX</h6>
+                      <div class="row g-2">
+                          <div class="col-6"><label class="small fw-bold text-success"><i class="fas fa-plus"></i> Nueva Entrada:</label><input type="number" id="e-qty" class="form-control form-control-sm border-success" value="0"></div>
+                          <div class="col-6"><label class="small fw-bold text-danger"><i class="fas fa-minus"></i> Merma/Vencido:</label><input type="number" id="e-minus" class="form-control form-control-sm border-danger" value="0"></div>
+                      </div>
+                  </div>
+
+                  <h6 class="fw-bold text-pink border-bottom pb-1">Actualizar Información</h6>
+                  <div class="row g-2 mb-2">
+                      <div class="col-6"><label class="small fw-bold">Precio (RD$):</label><input type="number" id="e-price" class="form-control form-control-sm" value="${currentPrice}"></div>
+                      <div class="col-6"><label class="small fw-bold">Límite MAX:</label><input type="number" id="e-max" class="form-control form-control-sm" value="${prod.maxStock || 50}"></div>
+                  </div>
+                  <div class="row g-2 mb-2">
+                      <div class="col-6"><label class="small fw-bold">Empresa Prov:</label><input type="text" id="e-supplier" class="form-control form-control-sm" value="${prod.supplier || prod.proveedor || ''}"></div>
+                      <div class="col-6"><label class="small fw-bold">Contacto Prov:</label><input type="text" id="e-contact" class="form-control form-control-sm" value="${prod.rep || prod.representante || prod.supplierContact || ''}"></div>
+                  </div>
+                  <div class="row g-2 mb-2">
+                      <div class="col-6"><label class="small fw-bold">Teléfono Prov:</label><input type="text" id="e-phone" class="form-control form-control-sm" value="${prod.tel || prod.telefonoProv || prod.supplierPhone || ''}"></div>
+                      <div class="col-6"><label class="small fw-bold">Código SKU:</label><input type="text" id="e-code" class="form-control form-control-sm" value="${prod.suppCode || prod.skuFabrica || prod.supplierCode || ''}"></div>
+                  </div>
+                  <div class="row g-2 mb-2 mt-3">
+                      <div class="col-6"><label class="small fw-bold">Fecha Pedido:</label><input id="e-order-date" type="date" class="form-control form-control-sm" value="${prod.ingreso || prod.fechaIngreso || prod.orderDate || ''}"></div>
+                      <div class="col-6"><label class="small fw-bold text-danger">Modificar Expiración:</label><input id="e-expdate" type="date" class="form-control form-control-sm border-danger" value="${prod.vence || prod.fechaVence || prod.expDate || ''}"></div>
+                  </div>
+                  
+                  <div class="mt-4 pt-3 border-top text-center">
+                     <button id="btn-delete-real" class="btn btn-outline-danger w-100 fw-bold rounded-pill"><i class="fas fa-trash me-2"></i>ELIMINAR PRODUCTO</button>
+                  </div>
+              </div>`,
+            showCancelButton: true, confirmButtonText: 'Guardar Cambios', confirmButtonColor: '#FF1493', cancelButtonText: 'Cancelar', width: '500px',
+            didOpen: () => {
+                document.getElementById('btn-delete-real').onclick = async () => {
+                    const res = await Swal.fire({ 
+                        title: '¿Borrar definitivamente?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Sí, borrar' 
+                    });
+                    if (res.isConfirmed) { 
+                        Swal.fire({ title: 'Borrando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                        try {
+                            if(fireId) {
+                                await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' });
+                            }
+                            STATE.inventory = STATE.inventory.filter(p => p.id !== id); 
+                            save(); filterInventory(); filterShop('all'); Swal.fire('Borrado', 'Eliminado con éxito', 'success'); 
+                        } catch(e) { Swal.fire('Error', 'Fallo al borrar.', 'error'); }
+                    }
+                };
+            },
+            preConfirm: () => {
+                const p = parseFloat(document.getElementById('e-price').value); 
+                const max = parseInt(document.getElementById('e-max').value);
+                const add = parseInt(document.getElementById('e-qty').value) || 0; 
+                const minus = parseInt(document.getElementById('e-minus').value) || 0;
+                
+                if (isNaN(p) || p <= 0 || isNaN(max)) { Swal.showValidationMessage("Datos inválidos"); return false; }
+                const newStock = currentStock + add - minus;
+                if (newStock < 0) { Swal.showValidationMessage("Stock insuficiente"); return false; }
+
+                return { 
+                    stock: newStock, price: p, maxStock: max, 
+                    orderDate: document.getElementById('e-order-date').value, 
+                    expDate: document.getElementById('e-expdate').value, 
+                    supplier: document.getElementById('e-supplier').value, 
+                    supplierContact: document.getElementById('e-contact').value, 
+                    supplierPhone: document.getElementById('e-phone').value, 
+                    supplierCode: document.getElementById('e-code').value 
+                };
+            }
+        });
+        
+        if (formValues) { 
+            Swal.fire({title: 'Sincronizando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             
-            if (isNaN(p) || p <= 0 || isNaN(max)) { Swal.showValidationMessage("Datos inválidos"); return false; }
-            const newStock = currentStock + add - minus;
-            if (newStock < 0) { Swal.showValidationMessage("Stock insuficiente"); return false; }
+            prod.stock = prod.cantidad = formValues.stock;
+            prod.price = prod.precio = formValues.price;
+            prod.maxStock = formValues.maxStock;
+            prod.orderDate = prod.ingreso = prod.fechaIngreso = formValues.orderDate;
+            prod.expDate = prod.vence = prod.fechaVence = formValues.expDate;
+            prod.supplier = prod.proveedor = formValues.supplier;
+            prod.supplierContact = prod.rep = prod.representante = formValues.supplierContact;
+            prod.supplierPhone = prod.tel = prod.telefonoProv = formValues.supplierPhone;
+            prod.supplierCode = prod.suppCode = prod.skuFabrica = formValues.supplierCode;
 
-            return { 
-                stock: newStock, price: p, maxStock: max, 
-                orderDate: document.getElementById('e-order-date').value, 
-                expDate: document.getElementById('e-expdate').value, 
-                supplier: document.getElementById('e-supplier').value, 
-                supplierContact: document.getElementById('e-contact').value, 
-                supplierPhone: document.getElementById('e-phone').value, 
-                supplierCode: document.getElementById('e-code').value 
-            };
+            if(fireId) {
+                 const patchPayload = {
+                     fields: {
+                         precio: { doubleValue: Number(formValues.price) },
+                         cantidad: { integerValue: formValues.stock.toString() },
+                         maxStock: { integerValue: formValues.maxStock.toString() },
+                         proveedor: { stringValue: formValues.supplier },
+                         representante: { stringValue: formValues.supplierContact },
+                         telefonoProv: { stringValue: formValues.supplierPhone },
+                         skuFabrica: { stringValue: formValues.supplierCode },
+                         fechaIngreso: { stringValue: formValues.orderDate },
+                         fechaVence: { stringValue: formValues.expDate }
+                     }
+                 };
+                 
+                 try {
+                     const upUrl = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?updateMask.fieldPaths=precio&updateMask.fieldPaths=cantidad&updateMask.fieldPaths=maxStock&updateMask.fieldPaths=proveedor&updateMask.fieldPaths=representante&updateMask.fieldPaths=telefonoProv&updateMask.fieldPaths=skuFabrica&updateMask.fieldPaths=fechaIngreso&updateMask.fieldPaths=fechaVence&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
+                     await fetch(upUrl, { method: 'PATCH', body: JSON.stringify(patchPayload) });
+                 } catch(e) { console.error("Error nube:", e); }
+            }
+            
+            save(); 
+            filterInventory(); filterShop('all');
+            Swal.fire('Éxito', 'Inventario actualizado en la nube.', 'success'); 
         }
-    });
-    
-    if (formValues) { 
-        Swal.fire({title: 'Sincronizando...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-        
-        // 1. Actualizar objeto local con AMBOS nombres (para evitar errores de recarga)
-        prod.stock = prod.cantidad = formValues.stock;
-        prod.price = prod.precio = formValues.price;
-        prod.maxStock = formValues.maxStock;
-        prod.orderDate = prod.fechaIngreso = formValues.orderDate;
-        prod.expDate = prod.fechaVence = formValues.expDate;
-        prod.supplier = prod.proveedor = formValues.supplier;
-        prod.supplierContact = prod.representante = formValues.supplierContact;
-        prod.supplierPhone = prod.telefonoProv = formValues.supplierPhone;
-        prod.supplierCode = prod.skuFabrica = formValues.supplierCode;
+    };
 
-        // 2. Parchear Firebase (Esperar a que termine ANTES de hacer save())
-        if(fireId) {
-             const patchPayload = {
-                 fields: {
-                     precio: { doubleValue: Number(formValues.price) },
-                     cantidad: { integerValue: formValues.stock.toString() },
-                     maxStock: { integerValue: formValues.maxStock.toString() },
-                     proveedor: { stringValue: formValues.supplier },
-                     representante: { stringValue: formValues.supplierContact },
-                     telefonoProv: { stringValue: formValues.supplierPhone },
-                     skuFabrica: { stringValue: formValues.supplierCode },
-                     fechaIngreso: { stringValue: formValues.orderDate },
-                     fechaVence: { stringValue: formValues.expDate }
-                 }
-             };
-             
-             try {
-                 const upUrl = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?updateMask.fieldPaths=precio&updateMask.fieldPaths=cantidad&updateMask.fieldPaths=maxStock&updateMask.fieldPaths=proveedor&updateMask.fieldPaths=representante&updateMask.fieldPaths=telefonoProv&updateMask.fieldPaths=skuFabrica&updateMask.fieldPaths=fechaIngreso&updateMask.fieldPaths=fechaVence&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-                 await fetch(upUrl, { method: 'PATCH', body: JSON.stringify(patchPayload) });
-             } catch(e) { console.error("Error nube:", e); }
-        }
-        
-        save(); // Ahora sí guardamos en localstorage lo que ya está en la nube
-        filterInventory(); 
-        Swal.fire('Éxito', 'Inventario actualizado en la nube.', 'success'); 
-    }
-};
-   /* ==========================================================================
+    /* ==========================================================================
        8. ADMINISTRACIÓN, RRHH Y NÓMINA (SISTEMA DE COMISIONES INTEGRADO)
        ========================================================================== */
     function renderAdmin() {
@@ -1776,7 +1374,6 @@
                 } 
             });
   
-            // NOTA: Se agregaron comillas simples a los IDs ('${s.id}') para que Firebase no rompa el código
             htmlStaff += `
             <div class="staff-card-vip border mb-2 shadow-sm">
                 <div class="d-flex align-items-center">
@@ -1885,8 +1482,7 @@
         }
     };
 
-    function addManualStaffSale(id) {
-        // Encontramos al empleado usando el ID de texto de Firebase
+    window.addManualStaffSale = function(id) {
         const staff = STATE.staff.find(s => s.id === String(id)); 
         if(!staff) return;
         
@@ -1922,7 +1518,7 @@
         });
     }
 
-    async function deleteStaff(id) {
+    window.deleteStaff = async function(id) {
         const result = await Swal.fire({ 
             title: '¿Borrar Personal?', 
             text: 'Esta acción lo eliminará de Google Firebase.',
@@ -1949,7 +1545,7 @@
         }
     }
 
-    async function deleteAppt(id) {
+    window.deleteAppt = async function(id) {
         const result = await Swal.fire({ 
             title: '¿Cancelar cita?', 
             text: 'Se eliminará permanentemente de la agenda.',
@@ -2011,7 +1607,7 @@
                 if (file) { 
                     try { 
                         Swal.showLoading();
-                        finalImg = await comprimirYConvertirABase64(file, 300); 
+                        finalImg = await window.comprimirYConvertirABase64(file, 300); 
                     } catch(e) { console.log("Error foto"); } 
                 } 
                 return { name, spec, comm, img: finalImg }; 
@@ -2032,7 +1628,6 @@
                     }
                 };
 
-                // URL limpia sin espacios invisibles
                 const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
                 
                 const respuesta = await fetch(url, {
@@ -2043,11 +1638,9 @@
 
                 if (respuesta.ok) {
                     Swal.fire('¡Logrado!', 'Personal guardado en la nube.', 'success');
-                    // IMPORTANTE: Refrescamos la memoria bajando los datos de nuevo
-                    if (typeof cargarTodoDesdeNube === "function") {
-                        cargarTodoDesdeNube(); 
+                    if (typeof window.cargarTodoDesdeNube === "function") {
+                        window.cargarTodoDesdeNube(); 
                     } else {
-                        console.warn("cargarTodoDesdeNube no existe, recargando página");
                         setTimeout(() => location.reload(), 1500);
                     }
                 } else {
@@ -2061,7 +1654,7 @@
         }
     };
 
-    async function openStaffPayments() {
+    window.openStaffPayments = async function() {
         const { value: formValues } = await Swal.fire({
             title: '<i class="fas fa-calendar-alt text-pink me-2"></i>Nómina y Comisiones',
             html: `
@@ -2121,7 +1714,7 @@
                             <small class="text-success fw-bold">Por pagar: RD$ ${montoComision.toLocaleString()}</small>
                         </div>
                     </div>
-                    <button class="btn btn-sm btn-dark rounded-pill px-3 fw-bold" onclick="payStaff(${s.id}, '${formValues.desde}', '${formValues.hasta}', ${ventasBrutasRango}, ${montoComision})" ${ventasBrutasRango <= 0 ? 'disabled' : ''}>
+                    <button class="btn btn-sm btn-dark rounded-pill px-3 fw-bold" onclick="window.payStaff('${s.id}', '${formValues.desde}', '${formValues.hasta}', ${ventasBrutasRango}, ${montoComision})" ${ventasBrutasRango <= 0 ? 'disabled' : ''}>
                         Liquidar
                     </button>
                 </div>`; 
@@ -2138,7 +1731,7 @@
         }
     }
   
-    function payStaff(id, desde, hasta, ventasBrutas, montoComision) { 
+    window.payStaff = function(id, desde, hasta, ventasBrutas, montoComision) { 
         const s = STATE.staff.find(x => x.id === id); 
         if(!s || ventasBrutas <= 0) return; 
         
@@ -2174,14 +1767,14 @@
                     }
                 });
                 
-                generateStaffReceipt(s, montoFinal, desde, hasta); 
+                window.generateStaffReceipt(s, montoFinal, desde, hasta); 
                 save(); 
                 Swal.fire('Pago Exitoso', `El recibo de nómina ha sido descargado y las ventas han sido saldadas en el sistema.`, 'success'); 
             } 
         }); 
     }
   
-    function generateStaffReceipt(staff, monto, desde, hasta) { 
+    window.generateStaffReceipt = function(staff, monto, desde, hasta) { 
         const { jsPDF } = window.jspdf; 
         const doc = new jsPDF(); 
         
@@ -2341,7 +1934,7 @@
         document.getElementById('client-stylist-list').innerHTML = html;
     }
 
-    async function bookAppt(stylistName) {
+    window.bookAppt = async function(stylistName) {
         await Swal.fire({ 
             title: `Reservar con ${stylistName}`, 
             html: `
@@ -2349,7 +1942,7 @@
                 <label class="small fw-bold">Correo (Requerido para el Ticket):</label>
                 <input id="sw-email" type="email" class="form-control form-control-sm mb-3">
                 <label class="small fw-bold">Fecha de visita:</label>
-                <input id="sw-date" type="date" class="form-control form-control-sm mb-3" onchange="checkAvailability('${stylistName}')">
+                <input id="sw-date" type="date" class="form-control form-control-sm mb-3" onchange="window.checkAvailability('${stylistName}')">
                 <label class="small fw-bold text-pink">Disponibilidad:</label>
                 <div id="time-slots" class="d-flex flex-wrap gap-2 justify-content-center mt-2 p-3 bg-light rounded border border-pink">
                     <small class="text-muted">Selecciona fecha en el calendario superior...</small>
@@ -2365,7 +1958,7 @@
                 }
             } 
         });
-    }
+    };
 
     window.triggerConfirmBooking = async function(date, hora, stylist) {
         const email = document.getElementById('sw-email').value.trim(); 
@@ -2445,7 +2038,7 @@
         }
     };
 
-    function checkAvailability(stylist) {
+    window.checkAvailability = function(stylist) {
         const date = document.getElementById('sw-date').value; 
         const container = document.getElementById('time-slots'); 
         
@@ -2466,9 +2059,9 @@
         });
         
         container.innerHTML = htmlBotones;
-    }
+    };
 
-    async function trackGlamTicket() {
+    window.trackGlamTicket = async function() {
         const { value: ticket } = await Swal.fire({ 
             title: '<i class="fas fa-search-location text-pink me-2"></i>Rastreo VIP', 
             input: 'text', 
@@ -2498,9 +2091,9 @@
                 Swal.fire('No encontrado', 'Verifica el número de ticket.', 'error'); 
             }
         }
-    }
+    };
 
-    function filterShop(cat) {
+    window.filterShop = function(cat) {
         const grid = document.getElementById('client-grid'); 
         const items = cat === 'all' ? STATE.inventory : STATE.inventory.filter(i => (i.cat || 'General') === cat || (cat === 'Pelo' && i.cat === 'Cabello'));
         
@@ -2517,7 +2110,7 @@
                 <div class="img-container mb-3 border-bottom">
                   <img src="${p.img}">
                   <div class="badge bg-dark position-absolute top-0 start-0 m-3 px-3 py-2 opacity-75">${p.brand || p.supplier || 'Glam Boutique'}</div>
-                  <button onclick="addToCart(${p.id})" class="btn-float-cart d-flex align-items-center justify-content-center" ${p.stock <= 0 ? 'disabled style="background:gray"':''}><i class="fas fa-shopping-bag"></i></button>
+                  <button onclick="window.addToCart(${p.id})" class="btn-float-cart d-flex align-items-center justify-content-center" ${p.stock <= 0 ? 'disabled style="background:gray"':''}><i class="fas fa-shopping-bag"></i></button>
                 </div>
                 <div class="px-4 text-start d-flex flex-column flex-grow-1">
                   <span class="badge bg-soft-pink text-pink mb-2 align-self-start">${p.cat || 'General'}</span>
@@ -2532,15 +2125,15 @@
         });
         
         grid.innerHTML = html;
-    }
+    };
 
     /* ==========================================================================
        11. LOGÍSTICA Y CARRITO
        ========================================================================== */
-    function toggleLogistics() { 
+    window.toggleLogistics = function() { 
         const box = document.getElementById('logistics-box'); 
         box.classList.toggle('hidden'); 
-        updateCart(); 
+        window.updateCart(); 
         
         if(!box.classList.contains('hidden')) { 
             setTimeout(() => { 
@@ -2572,16 +2165,16 @@
                 } 
             }, 300); 
         } 
-    }
+    };
 
-    function addToCart(id) { 
+    window.addToCart = function(id) { 
         const p = STATE.inventory.find(x => x.id === id); 
         STATE.cart.push({...p}); 
-        updateCart(); 
+        window.updateCart(); 
         document.getElementById('cart-sidebar').classList.add('active'); 
-    }
+    };
 
-    function updateCart() {
+    window.updateCart = function() {
         let sub = 0; 
         STATE.cart.forEach(i => sub += parseFloat(i.price || 0));
         
@@ -2607,30 +2200,30 @@
                         <img src="${i.img}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;" class="me-2">
                         <span><b style="font-size:12px">${i.name.substring(0,18)}...</b><br><small class="text-pink fw-bold">RD$ ${parseFloat(i.price).toLocaleString()}</small></span>
                     </div>
-                    <button class="btn btn-sm text-danger" onclick="removeItem(${idx})"><i class="fas fa-times"></i></button>
+                    <button class="btn btn-sm text-danger" onclick="window.removeItem(${idx})"><i class="fas fa-times"></i></button>
                 </div>`; 
             });
             document.getElementById('cart-list').innerHTML = html;
         }
-    }
+    };
 
-    function removeItem(i) { 
+    window.removeItem = function(i) { 
         STATE.cart.splice(i,1); 
-        updateCart(); 
-    }
+        window.updateCart(); 
+    };
     
-    function toggleCart() { 
+    window.toggleCart = function() { 
         document.getElementById('cart-sidebar').classList.toggle('active'); 
-    }
+    };
 
     /* ==========================================================================
        12. CHECKOUT Y GENERACIÓN DE FACTURAS / PDF (FORMSPREE)
        ========================================================================== */
-    function toggleCardFields() { 
+    window.toggleCardFields = function() { 
         document.getElementById('card-fields').classList.toggle('hidden', document.getElementById('pay-mode').value !== 'Tarjeta'); 
-    }
+    };
     
-    function toggleRncField() {
+    window.toggleRncField = function() {
         const tipo = document.getElementById('f-tipo').value;
         const rncBox = document.getElementById('rnc-box');
         if (tipo === 'B01') {
@@ -2639,15 +2232,15 @@
             rncBox.classList.add('hidden');
             document.getElementById('f-rnc').value = ''; 
         }
-    }
+    };
 
-    function openCheckout() { 
+    window.openCheckout = function() { 
         if(STATE.cart.length === 0) {
             return Swal.fire('Bolsa Vacía', 'Agrega productos a la bolsa.', 'warning'); 
         }
         
         document.getElementById('cart-sidebar').classList.remove('active'); 
-        updateInvoice(); 
+        window.updateInvoice(); 
         
         if (typeof bootstrap !== 'undefined') { 
             let m = bootstrap.Modal.getInstance(document.getElementById('payModal')); 
@@ -2658,9 +2251,9 @@
                 document.getElementById('f-name').value = STATE.currentUser.name; 
             }
         } 
-    }
+    };
 
-    function updateInvoice() {
+    window.updateInvoice = function() {
         let sub = 0; 
         STATE.cart.forEach(i => sub += parseFloat(i.price || 0));
         
@@ -2721,7 +2314,7 @@
         try { 
             JsBarcode("#barcode-preview", "PRE-"+Date.now().toString().slice(-6), { format: "CODE128", width: 1.5, height: 35, displayValue: false, lineColor: "#FF1493" }); 
         } catch(e){}
-    }
+    };
 
     /* ==========================================================================
        CHECKOUT Y VENTAS: FIREBASE + FORMSPREE
@@ -2855,14 +2448,14 @@
             document.body.style = '';
 
             setTimeout(() => { 
-                try { generateProfessionalPDF(saleRecord); } catch(err) {} 
+                try { window.generateProfessionalPDF(saleRecord); } catch(err) {} 
                 
                 Swal.fire('¡PAGO EXITOSO!', `Comprobante: ${ncf}`, 'success').then(() => { 
-                    updateCart(); 
-                    filterShop('all'); 
+                    window.updateCart(); 
+                    window.filterShop('all'); 
                     if (STATE.currentUser && STATE.currentUser.role === 'admin') { 
                         window.renderAdmin(); 
-                        if (typeof filterInventory === "function") filterInventory(); // Refresca inventario del admin
+                        if (typeof window.filterInventory === "function") window.filterInventory(); // Refresca inventario del admin
                     }
                 }); 
             }, 1000);
@@ -2872,7 +2465,7 @@
             Swal.fire('Error', 'Problema conectando al servidor. ' + error.message, 'error');
         }
     };
-    function generateProfessionalPDF(s) {
+    window.generateProfessionalPDF = function(s) {
         const { jsPDF } = window.jspdf; 
         const doc = new jsPDF({ unit: 'mm', format: [80, 200] });
         
@@ -2956,22 +2549,22 @@
         doc.setFontSize(6); 
         doc.text("GRACIAS POR SU COMPRA", 40, y + 42, {align:"center"}); 
         doc.save(`Factura_${s.ncf}.pdf`);
-    }
+    };
 
     /* ==========================================================================
        13. CHATBOT GLAM-IA
        ========================================================================== */
-    function toggleChat() { 
+    window.toggleChat = function() { 
         document.getElementById('chatbot-window').classList.toggle('hidden-chat'); 
-    }
+    };
     
-    function handleChatEnter(e) { 
+    window.handleChatEnter = function(e) { 
         if (e.key === 'Enter') { 
-            sendChatMessage(); 
+            window.sendChatMessage(); 
         } 
-    }
+    };
 
-    function sendChatMessage() {
+    window.sendChatMessage = function() {
         const input = document.getElementById('chat-input'); 
         const text = input.value.trim(); 
         if (!text) return;
@@ -2982,442 +2575,120 @@
         chatBody.scrollTop = chatBody.scrollHeight;
         
         setTimeout(() => {
-            const botResponse = getBotResponse(text.toLowerCase());
+            const botResponse = window.getBotResponse(text.toLowerCase());
             chatBody.innerHTML += `<div class="chat-msg msg-bot animate__animated animate__fadeInUp">${botResponse}</div>`;
             chatBody.scrollTop = chatBody.scrollHeight;
         }, 800);
-    }
+    };
 
-    function getBotResponse(text) {
+    window.getBotResponse = function(text) {
         if (text.includes('hola') || text.includes('saludos') || text.includes('buenas')) return "¡Hola belleza! Bienvenida a Glam Boutique. ¿Buscas agendar una cita o comprar productos?";
         if (text.includes('horario') || text.includes('hora') || text.includes('abierto')) return "Trabajamos de Lunes a Sábado de 9:00 AM a 7:00 PM. ¡Te esperamos!";
         if (text.includes('ubicacion') || text.includes('direccion') || text.includes('donde estan')) return "Estamos ubicados en la Av. Empresarial #10, Santo Domingo, DN. Frente a la plaza principal.";
         if (text.includes('cita') || text.includes('agendar') || text.includes('turno')) return "¡Claro! Puedes agendar tu cita fácilmente cerrando este chat y usando el Menú de Salón que está a tu derecha en la pantalla principal.";
         if (text.includes('precio') || text.includes('cuanto cuesta') || text.includes('costo')) return "Los precios varían según el servicio o producto. Te invito a explorar nuestra Boutique en pantalla.";
         return "Hmmm, no estoy 100% segura de esa respuesta 😅. Pero no te preocupes, puedes llamar o escribir por WhatsApp directamente a recepción al <b>809-555-0199</b> y una persona de nuestro equipo te ayudará de inmediato.";
-    }
+    };
 
     /* ==========================================================================
-       14. ARRANQUE INICIAL DEL SISTEMA
+       14. ARRANQUE INICIAL DEL SISTEMA Y SINCRONIZACIÓN FIREBASE
        ========================================================================== */
-    window.onload = () => { 
-        updateNavMenu();
-        if (STATE.currentUser) {
-            document.getElementById('nav-user-name').innerText = STATE.currentUser.name.split(' ')[0].toUpperCase();
-            if (STATE.currentUser.role === 'admin') { 
-                showAdminDashboard(); 
-            } else { 
-                showLandingPage(); 
-            }
-        } else {
-            showLandingPage();
-        }
-    };
+    window.cargarTodoDesdeNube = async function() {
+        try {
+            const key = "?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
+            const baseUrl = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/";
 
-            /* ==========================================================================
-       14. ARRANQUE INICIAL DEL SISTEMA
-       ========================================================================== */
-    window.onload = () => { 
-        updateNavMenu();
-        if (STATE.currentUser) {
-            document.getElementById('nav-user-name').innerText = STATE.currentUser.name.split(' ')[0].toUpperCase();
-            if (STATE.currentUser.role === 'admin') { 
-                showAdminDashboard(); 
-            } else { 
-                showLandingPage(); 
-            }
-        } else {
-            showLandingPage();
-        }
-    };
-
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-/* ==========================================================================
-       NUEVO STAFF - FUNCIÓN GLOBAL BLINDADA
-       ========================================================================== */
-    window.addNewStaff = async function() {
-        const { value: formValues } = await Swal.fire({ 
-            title: 'NUEVO ESPECIALISTA VIP', 
-            html: `
-            <div class="text-start">
-                <label class="small fw-bold">Foto del Profesional:</label>
-                <input type="file" id="ns-file" class="form-control form-control-sm mb-2" accept="image/*">
-                
-                <label class="small fw-bold">Nombre Completo <span class="text-danger">*</span></label>
-                <input id="ns-name" class="form-control form-control-sm mb-2" placeholder="Ej: Maria Lopez">
-                
-                <label class="small fw-bold">Especialidad <span class="text-danger">*</span></label>
-                <input id="ns-spec" class="form-control form-control-sm mb-2" placeholder="Ej: Máster Colorista">
-                
-                <label class="small fw-bold text-pink">Comisión (%)</label>
-                <input id="ns-comm" type="number" class="form-control form-control-sm border-pink mb-2" value="20">
-            </div>`, 
-            showCancelButton: true, 
-            confirmButtonColor: '#FF1493',
-            confirmButtonText: 'Guardar en Firebase ☁️', 
-            preConfirm: async () => { 
-                const name = document.getElementById('ns-name').value.trim(); 
-                const spec = document.getElementById('ns-spec').value.trim(); 
-                const comm = document.getElementById('ns-comm').value || "20";
-                const file = document.getElementById('ns-file').files[0]; 
-                
-                if (!name || !spec) { 
-                    Swal.showValidationMessage('El nombre y la especialidad son obligatorios'); 
-                    return false; 
-                } 
-                
-                let finalImg = 'https://via.placeholder.com/150'; 
-                if (file) { 
-                    try { 
-                        Swal.showLoading();
-                        // Asumimos que comprimirYConvertirABase64 existe en tu código (lo vi en tu archivo)
-                        finalImg = await comprimirYConvertirABase64(file, 300); 
-                    } catch(e) { console.log("Error al procesar la imagen"); } 
-                } 
-                return { name, spec, comm, img: finalImg }; 
-            } 
-        });
-        
-        if (formValues) { 
-            Swal.fire({ title: 'Subiendo a la nube...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-
-            try {
-                // Paquete estructurado para Firebase
-                const paqueteStaff = {
-                    fields: {
-                        nombre: { stringValue: formValues.name },
-                        especialidad: { stringValue: formValues.spec },
-                        comision: { stringValue: formValues.comm.toString() },
-                        img: { stringValue: formValues.img },
-                        status: { stringValue: "Offline" }
-                    }
-                };
-
-                const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/staff?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-                
-                const respuesta = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paqueteStaff)
+            // --- A. CARGAR PRODUCTOS ---
+            const resProd = await fetch(baseUrl + "producto" + key);
+            const dataProd = await resProd.json();
+            if (dataProd.documents) {
+                STATE.inventory = dataProd.documents.map((doc, index) => {
+                    const c = doc.fields;
+                    return {
+                        id: 5000 + index,
+                        firebaseId: doc.name.split('/').pop(),
+                        name: c.nombre?.stringValue || "Producto",
+                        price: Number(c.precio?.doubleValue || c.precio?.stringValue || 0),
+                        stock: Number(c.cantidad?.integerValue || c.cantidad?.stringValue || 0),
+                        maxStock: Number(c.maxStock?.integerValue || c.maxStock?.stringValue || 50),
+                        cat: c.categoria?.stringValue || "General",
+                        serial: c.serial?.stringValue || "",
+                        supplier: c.proveedor?.stringValue || "",
+                        supplierCode: c.skuFabrica?.stringValue || c.codigo_proveedor?.stringValue || "",
+                        supplierContact: c.representante?.stringValue || c.contacto_proveedor?.stringValue || "",
+                        supplierPhone: c.telefonoProv?.stringValue || c.telefono_proveedor?.stringValue || "",
+                        orderDate: c.fechaIngreso?.stringValue || "",
+                        expDate: c.fechaVence?.stringValue || c.vencimiento?.stringValue || "",
+                        img: c.img?.stringValue || "https://via.placeholder.com/150"
+                    };
                 });
-
-                if (respuesta.ok) {
-                    Swal.fire('¡Éxito!', 'El nuevo especialista ha sido guardado.', 'success');
-                    // Refrescamos llamando a la nube
-                    if (typeof cargarTodoDesdeNube === "function") {
-                        cargarTodoDesdeNube(); 
-                    } else {
-                        setTimeout(() => location.reload(), 1000);
-                    }
-                } else {
-                    throw new Error("El servidor de Google rechazó los datos.");
-                }
-            } catch (e) {
-                Swal.fire('Error', 'No se pudo guardar: ' + e.message, 'error');
             }
+
+            // --- B. CARGAR CITAS ---
+            const resCitas = await fetch(baseUrl + "cita" + key);
+            const dataCitas = await resCitas.json();
+            if (dataCitas.documents) {
+                STATE.appts = dataCitas.documents.map(doc => {
+                    const c = doc.fields;
+                    return {
+                        id: doc.name.split('/').pop(),
+                        ticket: c.ticket?.stringValue || "N/A",
+                        stylist: c.estilista?.stringValue || "Cualquiera",
+                        date: c.fecha?.stringValue || "",
+                        time: c.hora?.stringValue || "",
+                        email: c.cliente_email?.stringValue || ""
+                    };
+                });
+            }
+
+            // --- C. CARGAR STAFF (PERSONAL) ---
+            const resStaff = await fetch(baseUrl + "staff" + key);
+            const dataStaff = await resStaff.json();
+            if (dataStaff.documents) {
+                STATE.staff = dataStaff.documents.map(doc => {
+                    const c = doc.fields;
+                    return {
+                        id: doc.name.split('/').pop(),
+                        empId: "EMP-" + doc.name.split('/').pop().substring(0,3),
+                        name: c.nombre?.stringValue || "Sin Nombre",
+                        specialty: c.especialidad?.stringValue || "General",
+                        commission: Number(c.comision?.stringValue || 20),
+                        img: c.img?.stringValue || "https://via.placeholder.com/150",
+                        status: c.status?.stringValue || 'Offline',
+                        clockInTime: null,
+                        salesTotal: 0
+                    };
+                });
+            }
+
+            // REFRESCAR TODO EL WEBSITE
+            save();
+            if (typeof window.filterShop === "function") window.filterShop('all');
+            if (typeof window.filterInventory === "function") window.filterInventory();
+            if (typeof window.renderAdmin === "function") window.renderAdmin();
+            if (typeof window.renderClient === "function") window.renderClient();
+            console.log("¡Sincronización Total: Productos, Citas y Personal listos!");
+
+        } catch (error) {
+            console.error("Error sincronizando:", error);
         }
     };
-  async function cargarTodoDesdeNube() {
-    console.log("Sincronizando con Firebase...");
-    const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/";
-    const key = "?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
 
-    try {
-        // 1. CARGAR PRODUCTOS
-        const resProd = await fetch(url + "producto" + key);
-        const dataProd = await resProd.json();
-        
-        if (dataProd.documents) {
-            // IMPORTANTE: Vaciamos el inventario local para que no haya duplicados ni datos viejos
-            STATE.inventory = dataProd.documents.map(doc => {
-                const c = doc.fields;
-                return {
-                    id: Date.now() + Math.random(), // Genera un ID interno único
-                    firebaseId: doc.name.split('/').pop(),
-                    serial: c.serial?.stringValue || "S/N",
-                    name: c.nombre?.stringValue || "Sin Nombre",
-                    precio: Number(c.precio?.doubleValue || c.precio?.integerValue || 0),
-                    price: Number(c.precio?.doubleValue || c.precio?.integerValue || 0), // Mantenemos ambos para compatibilidad
-                    cantidad: Number(c.cantidad?.integerValue || 0),
-                    stock: Number(c.cantidad?.integerValue || 0), // Mantenemos ambos
-                    maxStock: Number(c.maxStock?.integerValue || 50),
-                    cat: c.categoria?.stringValue || "General",
-                    supplier: c.proveedor?.stringValue || "",
-                    supplierContact: c.representante?.stringValue || "",
-                    supplierPhone: c.telefonoProv?.stringValue || "",
-                    supplierCode: c.skuFabrica?.stringValue || "",
-                    orderDate: c.fechaIngreso?.stringValue || "",
-                    expDate: c.fechaVence?.stringValue || "",
-                    img: c.img?.stringValue || "https://via.placeholder.com/150"
-                };
-            });
-        }
-
-        // 2. CARGAR CITAS (Cita)
-        const resAppt = await fetch(url + "cita" + key);
-        const dataAppt = await resAppt.json();
-        if (dataAppt.documents) {
-            STATE.appts = dataAppt.documents.map(doc => {
-                const c = doc.fields;
-                return {
-                    id: doc.name.split('/').pop(),
-                    client: c.cliente?.stringValue || "Anónimo",
-                    service: c.servicio?.stringValue || "Consulta",
-                    date: c.fecha?.stringValue || "",
-                    time: c.hora?.stringValue || "",
-                    stylistId: c.estilistaId?.stringValue || "",
-                    status: c.estado?.stringValue || "Pendiente"
-                };
-            });
-        }
-
-        // 3. CARGAR STAFF
-        const resStaff = await fetch(url + "staff" + key);
-        const dataStaff = await resStaff.json();
-        if (dataStaff.documents) {
-            STATE.staff = dataStaff.documents.map(doc => {
-                const c = doc.fields;
-                return {
-                    id: doc.name.split('/').pop(),
-                    name: c.nombre?.stringValue || "Sin Nombre",
-                    specialty: c.especialidad?.stringValue || "General",
-                    status: c.status?.stringValue || 'Offline'
-                };
-            });
-        }
-
-        // GUARDAR EL ESTADO FRESCO EN LOCALSTORAGE
-        localStorage.setItem('GLAM_STATE', JSON.stringify(STATE));
-
-        // REFRESCAR LA INTERFAZ
-        if (typeof filterInventory === "function") filterInventory();
-        if (typeof renderAdmin === "function") renderAdmin();
-        
-        console.log("¡Datos actualizados desde la nube con éxito!");
-
-    } catch (error) {
-        console.error("Error crítico en la carga:", error);
-    }
-}
-    // Arrancamos la carga masiva
-    cargarTodoDesdeNube();
- // =======================================================================
-// 🚀 GLAM OS: TU DISEÑO EXACTO + CONEXIÓN A FIREBASE Y COMPRESIÓN
-// =======================================================================
-
-// 1. MOTOR DE COMPRESIÓN DE IMÁGENES
-window.comprimirYConvertirABase64 = function(file, maxDimension) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file); 
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width, height = img.height;
-                if (width > height) {
-                    if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
-                } else {
-                    if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
-                }
-                canvas.width = width; canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height); 
-                resolve(canvas.toDataURL('image/jpeg', 0.7));
-            };
-            img.onerror = () => reject("Error");
-        };
-        reader.onerror = () => reject("Error");
-    });
-};
-
-// 2. FUNCIÓN AGREGAR PRODUCTO (TU CÓDIGO EXACTO MODIFICADO PARA LA NUBE)
-window.addProduct = async function() {
-    const { value: formValues } = await Swal.fire({
-        title: '<i class="fas fa-boxes text-pink me-2"></i>NUEVO PRODUCTO',
-        html: `
-          <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-              <h6 class="fw-bold text-pink border-bottom pb-1">1. Datos Principales</h6>
-              <div class="row g-2 mb-2">
-                  <div class="col-5"><label class="small fw-bold">Serial <span class="text-danger">*</span></label><input id="np-serial" class="form-control form-control-sm"></div>
-                  <div class="col-7"><label class="small fw-bold">Nombre <span class="text-danger">*</span></label><input id="np-name" class="form-control form-control-sm"></div>
-              </div>
-              <div class="row g-2 mb-2">
-                  <div class="col-4"><label class="small fw-bold">Precio <span class="text-danger">*</span></label><input id="np-price" type="number" class="form-control form-control-sm"></div>
-                  <div class="col-4"><label class="small fw-bold">Stock Inicial:</label><input id="np-stock" type="number" class="form-control form-control-sm" value="0"></div>
-                  <div class="col-4"><label class="small fw-bold text-danger">Stock MÁX <span class="text-danger">*</span></label><input id="np-max" type="number" class="form-control form-control-sm" value="50"></div>
-              </div>
-              <div class="mb-2">
-                  <label class="small fw-bold">Categoría:</label>
-                  <select id="np-cat" class="form-select form-select-sm">
-                      <option>Pelo</option><option>Uñas</option><option>Tintes</option><option>Piel</option><option>Perfumes</option><option>General</option>
-                  </select>
-              </div>
-              <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">2. Logística Proveedor</h6>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Empresa:</label><input id="np-supplier" type="text" class="form-control form-control-sm"></div>
-                  <div class="col-6"><label class="small fw-bold">Contacto:</label><input id="np-supp-contact" type="text" class="form-control form-control-sm"></div>
-              </div>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Teléfono Prov:</label><input id="np-supp-phone" type="text" class="form-control form-control-sm"></div>
-                  <div class="col-6"><label class="small fw-bold">Cód. Fábrica (SKU):</label><input id="np-supp-code" type="text" class="form-control form-control-sm"></div>
-              </div>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Fecha Pedido:</label><input id="np-order-date" type="date" class="form-control form-control-sm"></div>
-                  <div class="col-6"><label class="small fw-bold text-danger">Fecha Expiración:</label><input id="np-expdate" type="date" class="form-control form-control-sm border-danger"></div>
-              </div>
-              <h6 class="fw-bold text-pink border-bottom pb-1 mt-4">3. Fotografía</h6>
-              <input type="file" id="np-img-file" class="form-control form-control-sm mb-1" accept="image/*">
-          </div>`,
-        showCancelButton: true, confirmButtonText: 'Guardar Producto', width: '550px',
-        preConfirm: async () => {
-            const serial = document.getElementById('np-serial').value.trim();
-            const name = document.getElementById('np-name').value.trim();
-            const price = parseFloat(document.getElementById('np-price').value);
-            const stock = parseInt(document.getElementById('np-stock').value) || 0;
-            const maxStock = parseInt(document.getElementById('np-max').value) || 50;
-            const file = document.getElementById('np-img-file').files[0];
-            
-            if (!name || isNaN(price) || !serial) { Swal.showValidationMessage("Llene los campos con asterisco"); return false; }
-            
-            let imgUrl = 'https://via.placeholder.com/150';
-            if (file) { try { imgUrl = await window.comprimirYConvertirABase64(file, 400); } catch(e){} }
-
-            return { serial, name, price, stock, maxStock, cat: document.getElementById('np-cat').value,
-                     supplier: document.getElementById('np-supplier').value, supplierContact: document.getElementById('np-supp-contact').value,
-                     supplierPhone: document.getElementById('np-supp-phone').value, supplierCode: document.getElementById('np-supp-code').value,
-                     orderDate: document.getElementById('np-order-date').value, expDate: document.getElementById('np-expdate').value, img: imgUrl };
-        }
-    });
-
-    if (formValues) {
-        Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        const payload = {
-            fields: {
-                serial: { stringValue: formValues.serial },
-                nombre: { stringValue: formValues.name },
-                precio: { doubleValue: Number(formValues.price) },
-                cantidad: { integerValue: formValues.stock.toString() },
-                maxStock: { integerValue: formValues.maxStock.toString() },
-                categoria: { stringValue: formValues.cat },
-                proveedor: { stringValue: formValues.supplier },
-                representante: { stringValue: formValues.supplierContact },
-                telefonoProv: { stringValue: formValues.supplierPhone },
-                skuFabrica: { stringValue: formValues.supplierCode },
-                fechaIngreso: { stringValue: formValues.orderDate },
-                fechaVence: { stringValue: formValues.expDate },
-                img: { stringValue: formValues.img }
+    window.onload = () => { 
+        window.updateNavMenu();
+        if (STATE.currentUser) {
+            document.getElementById('nav-user-name').innerText = STATE.currentUser.name.split(' ')[0].toUpperCase();
+            if (STATE.currentUser.role === 'admin') { 
+                window.showAdminDashboard(); 
+            } else { 
+                window.showLandingPage(); 
             }
-        };
-        const res = await fetch("https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q", { method: 'POST', body: JSON.stringify(payload) });
-        if(res.ok) {
-            const data = await res.json();
-            STATE.inventory.push({ id: Date.now(), firebaseId: data.name.split('/').pop(), ...formValues });
-            save(); filterInventory();
-            Swal.fire('Éxito', 'Producto guardado', 'success');
+        } else {
+            window.showLandingPage();
         }
-    }
-};
-// 3. FUNCIÓN EDICIÓN Y BORRADO (TU CÓDIGO EXACTO MODIFICADO PARA LA NUBE)
-window.openQuickEdit = async function(id) {
-    const prod = STATE.inventory.find(p => p.id === id);
-    if (!prod) return;
-    const fireId = prod.firebaseId;
-
-    // MAPEO DE SEGURIDAD: Si el dato viene de Firebase con nombre en español, lo usamos
-    const currentStock = prod.cantidad !== undefined ? parseInt(prod.cantidad) : (prod.stock || 0);
-    const currentPrice = prod.precio !== undefined ? parseFloat(prod.precio) : (prod.price || 0);
-    const currentName = prod.nombre || prod.name || "Sin nombre";
-
-    const { value: formValues } = await Swal.fire({
-        title: 'EDICIÓN Y CONTROL',
-        html: `
-          <div class="text-start" style="max-height: 65vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-              <div class="text-center mb-3">
-                  <img src="${prod.img}" height="80" class="border border-pink rounded shadow-sm">
-              </div>
-              <div class="bg-light p-3 rounded border mb-4">
-                  <h6 class="fw-bold text-dark text-center mb-3">Stock Físico: <span class="text-pink fs-4">${currentStock}</span> / ${prod.maxStock || 50} MAX</h6>
-                  <div class="row g-2">
-                      <div class="col-6"><label class="small fw-bold text-success"><i class="fas fa-plus"></i> Entrada:</label><input type="number" id="e-qty" class="form-control form-control-sm border-success" value="0"></div>
-                      <div class="col-6"><label class="small fw-bold text-danger"><i class="fas fa-minus"></i> Merma:</label><input type="number" id="e-minus" class="form-control form-control-sm border-danger" value="0"></div>
-                  </div>
-              </div>
-              <h6 class="fw-bold text-pink border-bottom pb-1">Actualizar Información</h6>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Precio (RD$):</label><input type="number" id="e-price" class="form-control form-control-sm" value="${currentPrice}"></div>
-                  <div class="col-6"><label class="small fw-bold">Límite MAX:</label><input type="number" id="e-max" class="form-control form-control-sm" value="${prod.maxStock || 50}"></div>
-              </div>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Empresa Prov:</label><input type="text" id="e-supplier" class="form-control form-control-sm" value="${prod.proveedor || prod.supplier || ''}"></div>
-                  <div class="col-6"><label class="small fw-bold">Contacto Prov:</label><input type="text" id="e-contact" class="form-control form-control-sm" value="${prod.representante || prod.supplierContact || ''}"></div>
-              </div>
-              <div class="row g-2 mb-2">
-                  <div class="col-6"><label class="small fw-bold">Teléfono Prov:</label><input type="text" id="e-phone" class="form-control form-control-sm" value="${prod.telefonoProv || prod.supplierPhone || ''}"></div>
-                  <div class="col-6"><label class="small fw-bold">Código SKU:</label><input type="text" id="e-code" class="form-control form-control-sm" value="${prod.skuFabrica || prod.supplierCode || ''}"></div>
-              </div>
-              <div class="row g-2 mb-2 mt-3">
-                  <div class="col-6"><label class="small fw-bold">Fecha Pedido:</label><input id="e-order-date" type="date" class="form-control form-control-sm" value="${prod.fechaIngreso || prod.orderDate || ''}"></div>
-                  <div class="col-6"><label class="small fw-bold text-danger">Modificar Expiración:</label><input id="e-expdate" type="date" class="form-control form-control-sm border-danger" value="${prod.fechaVence || prod.expDate || ''}"></div>
-              </div>
-              <div class="mt-4 pt-3 border-top text-center">
-                 <button id="btn-delete-real" class="btn btn-outline-danger w-100 fw-bold rounded-pill"><i class="fas fa-trash me-2"></i>ELIMINAR PRODUCTO</button>
-              </div>
-          </div>`,
-        showCancelButton: true, confirmButtonText: 'Guardar Cambios', confirmButtonColor: '#FF1493', width: '500px',
-        didOpen: () => {
-            document.getElementById('btn-delete-real').onclick = async () => {
-                if(fireId) {
-                    await fetch(`https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`, { method: 'DELETE' });
-                }
-                STATE.inventory = STATE.inventory.filter(p => p.id !== id);
-                save(); filterInventory(); Swal.close();
-            }
-        },
-        preConfirm: () => {
-            const nPrice = parseFloat(document.getElementById('e-price').value);
-            const nStock = currentStock + (parseInt(document.getElementById('e-qty').value) || 0) - (parseInt(document.getElementById('e-minus').value) || 0);
-            if (nStock < 0) { Swal.showValidationMessage("No puedes tener stock negativo"); return false; }
-            return { nPrice, nStock, max: document.getElementById('e-max').value, prov: document.getElementById('e-supplier').value, cont: document.getElementById('e-contact').value, tel: document.getElementById('e-phone').value, sku: document.getElementById('e-code').value, fI: document.getElementById('e-order-date').value, fV: document.getElementById('e-expdate').value };
-        }
-    });
-
-    if (formValues) {
-        Swal.fire({ title: 'Sincronizando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         
-        // ACTUALIZAMOS LOCALMENTE (Ambos nombres para que no falle al refrescar)
-        prod.cantidad = prod.stock = formValues.nStock;
-        prod.precio = prod.price = formValues.nPrice;
-        prod.maxStock = formValues.max;
-        prod.proveedor = prod.supplier = formValues.prov;
-        prod.representante = prod.supplierContact = formValues.cont;
-        prod.telefonoProv = prod.supplierPhone = formValues.tel;
-        prod.skuFabrica = prod.supplierCode = formValues.sku;
-        prod.fechaIngreso = prod.orderDate = formValues.fI;
-        prod.fechaVence = prod.expDate = formValues.fV;
-
-        if(fireId) {
-            const upUrl = `https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/producto/${fireId}?updateMask.fieldPaths=precio&updateMask.fieldPaths=cantidad&updateMask.fieldPaths=maxStock&updateMask.fieldPaths=proveedor&updateMask.fieldPaths=representante&updateMask.fieldPaths=telefonoProv&updateMask.fieldPaths=skuFabrica&updateMask.fieldPaths=fechaIngreso&updateMask.fieldPaths=fechaVence&key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q`;
-            const payload = { fields: {
-                precio: { doubleValue: Number(formValues.nPrice) },
-                cantidad: { integerValue: formValues.nStock.toString() },
-                maxStock: { integerValue: formValues.max.toString() },
-                proveedor: { stringValue: formValues.prov },
-                representante: { stringValue: formValues.cont },
-                telefonoProv: { stringValue: formValues.tel },
-                skuFabrica: { stringValue: formValues.sku },
-                fechaIngreso: { stringValue: formValues.fI },
-                fechaVence: { stringValue: formValues.fV }
-            }};
-            await fetch(upUrl, { method: 'PATCH', body: JSON.stringify(payload) });
-        }
-        save(); filterInventory();
-        Swal.fire('Éxito', 'Cambios guardados', 'success');
-    }
-}
-    </script>
+        window.cargarTodoDesdeNube();
+    };
+</script>
+</body>
+</html>
