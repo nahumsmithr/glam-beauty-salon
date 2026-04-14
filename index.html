@@ -3121,80 +3121,88 @@
             }
         }
     };
-    async function cargarTodoDesdeNube() {
-        try {
-            const key = "?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
-            const baseUrl = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/";
+  async function cargarTodoDesdeNube() {
+    console.log("Sincronizando con Firebase...");
+    const url = "https://firestore.googleapis.com/v1/projects/glam-beauty-salon/databases/(default)/documents/";
+    const key = "?key=AIzaSyAA0rlE9jdmoYU4hcNKwJkuFzI4Evfbr0Q";
 
-            // --- A. CARGAR PRODUCTOS ---
-            const resProd = await fetch(baseUrl + "producto" + key);
-            const dataProd = await resProd.json();
-            if (dataProd.documents) {
-                STATE.inventory = dataProd.documents.map((doc, index) => {
-                    const c = doc.fields;
-                    return {
-                        id: 5000 + index,
-                        firebaseId: doc.name.split('/').pop(),
-                        name: c.nombre?.stringValue || "Producto",
-                        price: Number(c.precio?.stringValue || 0),
-                        stock: Number(c.cantidad?.stringValue || 0),
-                        maxStock: Number(c.maxStock?.stringValue || 50),
-                        cat: c.categoria?.stringValue || "General",
-                        img: c.img?.stringValue || "https://via.placeholder.com/150"
-                    };
-                });
-            }
-
-            // --- B. CARGAR CITAS ---
-            const resCitas = await fetch(baseUrl + "cita" + key);
-            const dataCitas = await resCitas.json();
-            if (dataCitas.documents) {
-                STATE.appts = dataCitas.documents.map(doc => {
-                    const c = doc.fields;
-                    return {
-                        id: doc.name.split('/').pop(),
-                        ticket: c.ticket?.stringValue || "N/A",
-                        stylist: c.estilista?.stringValue || "Cualquiera",
-                        date: c.fecha?.stringValue || "",
-                        time: c.hora?.stringValue || "",
-                        email: c.cliente_email?.stringValue || ""
-                    };
-                });
-            }
-
-            // --- C. CARGAR STAFF (PERSONAL) ---
-            const resStaff = await fetch(baseUrl + "staff" + key);
-            const dataStaff = await resStaff.json();
-            if (dataStaff.documents) {
-                STATE.staff = dataStaff.documents.map(doc => {
-                    const c = doc.fields;
-                    return {
-                        id: doc.name.split('/').pop(),
-                        empId: "EMP-" + doc.name.split('/').pop().substring(0,3),
-                        name: c.nombre?.stringValue || "Sin Nombre",
-                        specialty: c.especialidad?.stringValue || "General",
-                        commission: Number(c.comision?.stringValue || 20),
-                        img: c.img?.stringValue || "https://via.placeholder.com/150",
-                        status: c.status?.stringValue || 'Offline',
-                        clockInTime: null,
-                        salesTotal: 0
-                    };
-                });
-            }
-
-            // REFRESCAR TODO EL WEBSITE
-            save();
-            if (typeof filterShop === "function") filterShop('all');
-            if (typeof filterInventory === "function") filterInventory();
-            if (typeof renderAdmin === "function") renderAdmin();
-            if (typeof renderClient === "function") renderClient();
-            console.log("¡Sincronización Total: Productos, Citas y Personal listos!");
-
-        } catch (error) {
-            console.error("Error sincronizando:", error);
+    try {
+        // 1. CARGAR PRODUCTOS
+        const resProd = await fetch(url + "producto" + key);
+        const dataProd = await resProd.json();
+        
+        if (dataProd.documents) {
+            // IMPORTANTE: Vaciamos el inventario local para que no haya duplicados ni datos viejos
+            STATE.inventory = dataProd.documents.map(doc => {
+                const c = doc.fields;
+                return {
+                    id: Date.now() + Math.random(), // Genera un ID interno único
+                    firebaseId: doc.name.split('/').pop(),
+                    serial: c.serial?.stringValue || "S/N",
+                    name: c.nombre?.stringValue || "Sin Nombre",
+                    precio: Number(c.precio?.doubleValue || c.precio?.integerValue || 0),
+                    price: Number(c.precio?.doubleValue || c.precio?.integerValue || 0), // Mantenemos ambos para compatibilidad
+                    cantidad: Number(c.cantidad?.integerValue || 0),
+                    stock: Number(c.cantidad?.integerValue || 0), // Mantenemos ambos
+                    maxStock: Number(c.maxStock?.integerValue || 50),
+                    cat: c.categoria?.stringValue || "General",
+                    supplier: c.proveedor?.stringValue || "",
+                    supplierContact: c.representante?.stringValue || "",
+                    supplierPhone: c.telefonoProv?.stringValue || "",
+                    supplierCode: c.skuFabrica?.stringValue || "",
+                    orderDate: c.fechaIngreso?.stringValue || "",
+                    expDate: c.fechaVence?.stringValue || "",
+                    img: c.img?.stringValue || "https://via.placeholder.com/150"
+                };
+            });
         }
-    }
 
+        // 2. CARGAR CITAS (Cita)
+        const resAppt = await fetch(url + "cita" + key);
+        const dataAppt = await resAppt.json();
+        if (dataAppt.documents) {
+            STATE.appts = dataAppt.documents.map(doc => {
+                const c = doc.fields;
+                return {
+                    id: doc.name.split('/').pop(),
+                    client: c.cliente?.stringValue || "Anónimo",
+                    service: c.servicio?.stringValue || "Consulta",
+                    date: c.fecha?.stringValue || "",
+                    time: c.hora?.stringValue || "",
+                    stylistId: c.estilistaId?.stringValue || "",
+                    status: c.estado?.stringValue || "Pendiente"
+                };
+            });
+        }
+
+        // 3. CARGAR STAFF
+        const resStaff = await fetch(url + "staff" + key);
+        const dataStaff = await resStaff.json();
+        if (dataStaff.documents) {
+            STATE.staff = dataStaff.documents.map(doc => {
+                const c = doc.fields;
+                return {
+                    id: doc.name.split('/').pop(),
+                    name: c.nombre?.stringValue || "Sin Nombre",
+                    specialty: c.especialidad?.stringValue || "General",
+                    status: c.status?.stringValue || 'Offline'
+                };
+            });
+        }
+
+        // GUARDAR EL ESTADO FRESCO EN LOCALSTORAGE
+        localStorage.setItem('GLAM_STATE', JSON.stringify(STATE));
+
+        // REFRESCAR LA INTERFAZ
+        if (typeof filterInventory === "function") filterInventory();
+        if (typeof renderAdmin === "function") renderAdmin();
+        
+        console.log("¡Datos actualizados desde la nube con éxito!");
+
+    } catch (error) {
+        console.error("Error crítico en la carga:", error);
+    }
+}
     // Arrancamos la carga masiva
     cargarTodoDesdeNube();
  // =======================================================================
